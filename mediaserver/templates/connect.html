@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}扫码连接{% endblock %}
+{% block content %}
+<section class="library-head">
+  <h1>扫码连接</h1>
+  <p class="muted">用手机相机扫下面的二维码。二维码在本机生成，不会把地址发给第三方。</p>
+</section>
+
+<div class="qr-grid">
+  <section class="qr-card">
+    <h2>打开网页客户端</h2>
+    <div class="qr" data-qr="{{ web_url }}" aria-label="网页客户端二维码"></div>
+    <code class="qr-url">{{ web_url }}</code>
+    <button type="button" class="btn btn-ghost" data-copy="{{ web_url }}">复制地址</button>
+  </section>
+
+  <section class="qr-card">
+    <h2>导入到牧云音乐</h2>
+    <div class="qr" data-qr="{{ manifest_url }}" aria-label="manifest 二维码"></div>
+    <code class="qr-url">{{ manifest_url }}</code>
+    <button type="button" class="btn btn-ghost" data-copy="{{ manifest_url }}">复制地址</button>
+    <p class="hint muted">牧云音乐 → 设置 → 家庭影音配置 → 按 URL 导入清单，粘贴这个地址。</p>
+  </section>
+
+  {% if login_url %}
+  <section class="qr-card">
+    <h2>扫码登录</h2>
+    <div class="qr" data-qr="{{ login_url }}" aria-label="一次性登录二维码"></div>
+    <p class="hint">一次性链接，{{ ttl }} 秒内有效。扫码后这台手机直接进入已登录状态，请勿截图外传。</p>
+    <button type="button" class="btn btn-ghost" data-copy="{{ login_url }}">复制登录链接</button>
+  </section>
+  {% endif %}
+</div>
+
+<p class="muted">局域网地址与公网地址各自生成一次二维码即可：在手机上打开哪个入口，就在那个入口的「连接」页扫码。</p>
+
+<script src="{{ url_for('static', filename='vendor/qrcode.min.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/connect.js') }}" defer></script>
+{% endblock %}

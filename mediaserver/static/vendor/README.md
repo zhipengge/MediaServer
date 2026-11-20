@@ -11,3 +11,14 @@
 - Update procedure: replace the file with the same build from a new release, update
   the version above, and re-run the browser smoke test (`/watch/<id>` on a
   non-H.264 file).
+
+## QRCode.js 1.0.0
+
+- File: `qrcode.min.js` (from `qrcodejs@1.0.0/qrcode.min.js`)
+- License: MIT, see `qrcode.LICENSE.txt`
+- Source: <https://github.com/davidshimjs/qrcodejs>
+- Why vendored: `/connect` renders QR codes client-side, so no data (including
+  one-time login links) is sent to a third-party QR image service, and the page
+  works with no internet access.
+- Update procedure: replace `qrcode.min.js`, update the version above, and verify
+  `/connect` still renders both the web URL and the manifest URL.

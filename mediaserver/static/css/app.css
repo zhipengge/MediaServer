@@ -338,3 +338,32 @@ audio { width: 100%; margin-top: 14px; }
   .search input { min-width: 150px; }
   .stats { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── QR / connect ────────────────────────────────────────── */
+.qr-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+}
+.qr-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+.qr-card h2 { font-size: 1rem; }
+.qr {
+  background: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  line-height: 0;
+}
+.qr img, .qr canvas { display: block; }
+.qr-url { word-break: break-all; font-size: .78rem; }
+.login-qr { margin-top: 20px; border-top: 1px solid var(--border); padding-top: 14px; }
+.login-qr summary { cursor: pointer; color: var(--muted); font-size: .88rem; }
+.login-qr .qr { margin: 12px 0; }

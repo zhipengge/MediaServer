@@ -55,6 +55,7 @@ Report a vulnerability）提交，不要在公开 issue 里放可复现的攻击
 - API 支持 `Authorization: Bearer` 与 `X-API-Token`，比较使用 `hmac.compare_digest`（定时安全）；
 - 网页登录写入 `HttpOnly`、`SameSite=Lax` 的签名 Cookie；HTTPS 部署可开 `MEDIA_COOKIE_SECURE=1`；
 - 登录失败按 IP 限速：5 分钟 8 次后拒绝，成功登录清零；nginx 侧还有 `limit_req` 与 fail2ban；
+- 扫码登录（`/connect`）使用 itsdangerous 签名、120 秒有效、服务端记录一次性使用；该链接等价于完整权限，页面已提示不要截图外传；
 - Cookie 认证的写操作校验 `Origin` / `Referer`，跨站请求返回 403（CSRF 防护）。
 
 ### 文件与路径

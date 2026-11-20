@@ -13,5 +13,19 @@
   </form>
   {% if error %}<p class="error">{{ error }}</p>{% endif %}
   <p class="hint muted">API 客户端请使用 <code>Authorization: Bearer &lt;token&gt;</code>。</p>
+
+  {% if page_url %}
+  <details class="login-qr">
+    <summary>在手机上打开这一页</summary>
+    <div class="qr" data-qr="{{ page_url }}" aria-label="登录页二维码"></div>
+    <p class="hint muted">{{ page_url }}</p>
+  </details>
+  {% endif %}
 </section>
+{% endblock %}
+{% block scripts %}
+{% if page_url %}
+<script src="{{ url_for('static', filename='vendor/qrcode.min.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/connect.js') }}" defer></script>
+{% endif %}
 {% endblock %}

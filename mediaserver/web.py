@@ -7,6 +7,7 @@ step, no CDN dependency, everything works on a LAN with no internet access.
 from __future__ import annotations
 
 import math
+import time
 
 from flask import (
     Blueprint,
@@ -17,6 +18,8 @@ from flask import (
     session,
     url_for,
 )
+
+from .auth import QR_LOGIN_TTL
 
 bp = Blueprint("web", __name__)
 
@@ -233,13 +236,23 @@ def login():
     s = svc()
     if not s.config.auth_enabled:
         return redirect(url_for("web.index"))
-    if session.get("auth") is True:
-        return redirect(url_for("web.index"))
     next_path = request.args.get("next", "/")
     if not next_path.startswith("/") or next_path.startswith("//"):
         next_path = "/"
+    one_time = request.args.get("ot")
+    if one_time:
+        if s.auth.consume_login_token(one_time):
+            session.clear()
+            session["auth"] = True
+            return redirect(next_path)
+        return render_template("login.html", next=next_path,
+                               error="二维码已过期或已使用，请重新生成",
+                               page_url=url_for("web.login", _external=True))
+    if session.get("auth") is True:
+        return redirect(url_for("web.index"))
     return render_template("login.html", next=next_path,
-                           error=request.args.get("error"))
+                           error=request.args.get("error"),
+                           page_url=url_for("web.login", _external=True))
 
 
 @bp.post("/login")
@@ -267,6 +280,28 @@ def login_post():
 def logout():
     session.clear()
     return redirect(url_for("web.index"))
+
+
+@bp.get("/connect")
+def connect():
+    s = svc()
+    base = s.config.public_base(request.host)
+    web_url = base + "/"
+    manifest_url = base + "/api/v1/manifest"
+    login_url = None
+    expires_at = None
+    if s.config.auth_enabled:
+        token = s.auth.issue_login_token()
+        login_url = f"{base}/login?ot={token}"
+        expires_at = int(time.time()) + QR_LOGIN_TTL
+    return render_template(
+        "connect.html",
+        web_url=web_url,
+        manifest_url=manifest_url,
+        login_url=login_url,
+        expires_at=expires_at,
+        ttl=QR_LOGIN_TTL,
+    )
 
 
 @bp.get("/favicon.ico")

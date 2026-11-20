@@ -15,6 +15,8 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
   image viewer, document preview, shares, playlists, settings and login.
 - Video support: direct progressive playback and on-demand HLS transcoding with
   job progress, segment serving and cache eviction.
+- QR connection page (`/connect`) with web URL, manifest URL, and 120-second
+  single-use scan-to-login links.
 - Metadata probing via mutagen, ffprobe and a pure-Python MP4 fallback.
 - Cover extraction, thumbnails and lyrics parsing (sidecar `.lrc` and embedded).
 - Share uploads (multipart) and same-origin URL shares with the `muYunShared/1` format.

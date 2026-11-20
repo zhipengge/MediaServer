@@ -224,6 +224,9 @@ curl -H "X-API-Token: $MEDIA_TOKEN" http://127.0.0.1:8080/api/v1/items
 网页登录：`GET /login` 表单 → `POST /login`（字段 `token`、`next`），成功后写入
 `HttpOnly` 签名 Cookie；`POST /logout` 退出。失败尝试按 IP 限速（5 分钟 8 次）。
 
+扫码登录：`/connect` 为已登录用户生成 `https://<host>/login?ot=<token>`，
+有效期 120 秒、服务端内存记录一次性使用；扫码后手机直接进入已登录状态。
+
 ## 网页路由
 
 | 路径 | 页面 |
@@ -235,6 +238,7 @@ curl -H "X-API-Token: $MEDIA_TOKEN" http://127.0.0.1:8080/api/v1/items
 | `/view/<id>` | 图片查看 |
 | `/read/<id>` | 文档预览（文本 / PDF） |
 | `/shares` | 分享列表与上传 |
+| `/connect` | 扫码连接（网页地址、manifest、一次性登录码） |
 | `/playlists`、`/playlist/<id>` | 播放列表 |
 | `/settings` | 状态、能力、安全提示、重新扫描 |
 | `/login`、`/logout` | 登录 / 退出 |

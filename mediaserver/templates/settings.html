@@ -3,7 +3,7 @@
 {% block content %}
 <section class="library-head">
   <h1>服务器状态</h1>
-  <p class="muted">{{ status.name }} v{{ status.version }}</p>
+  <p class="muted">{{ status.name }} v{{ status.version }} · <a class="btn btn-ghost" href="{{ url_for('web.connect') }}">扫码连接</a></p>
 </section>
 
 <div class="panel-grid">

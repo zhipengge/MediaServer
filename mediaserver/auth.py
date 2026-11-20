@@ -16,12 +16,14 @@ import time
 from pathlib import Path
 
 from flask import request
+from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 PUBLIC_PATHS = {"/api/v1/status", "/healthz", "/login", "/favicon.ico"}
 PUBLIC_PREFIXES = ("/static/",)
 
 _MAX_ATTEMPTS = 8
 _WINDOW_SECONDS = 300
+QR_LOGIN_TTL = 120  # seconds a scan-to-login QR stays valid
 
 
 class AuthService:
@@ -32,6 +34,9 @@ class AuthService:
         self.secret_key = config.secret_key or self._load_or_create_secret(secret_file)
         self._attempts: dict[str, list[float]] = {}
         self._lock = threading.Lock()
+        self._login_serializer = URLSafeTimedSerializer(
+            self.secret_key, salt="mediaserver-qr-login")
+        self._used_login_tokens: dict[str, float] = {}
 
     @staticmethod
     def _load_or_create_secret(path: Path) -> str:
@@ -76,6 +81,32 @@ class AuthService:
         if header.lower().startswith("bearer ") and self.matches(header[7:].strip()):
             return True
         return self.matches(req.headers.get("X-API-Token"))
+
+    # ── scan-to-login one-time tokens ───────────────────────────────
+    def issue_login_token(self) -> str:
+        """Signed token for `/login?ot=`; valid for QR_LOGIN_TTL seconds."""
+        return self._login_serializer.dumps({"v": 1})
+
+    def consume_login_token(self, token: str | None) -> bool:
+        """Verify and burn a login token (single use per process)."""
+        if not token:
+            return False
+        try:
+            payload = self._login_serializer.loads(token, max_age=QR_LOGIN_TTL)
+        except (BadSignature, SignatureExpired):
+            return False
+        if not isinstance(payload, dict) or payload.get("v") != 1:
+            return False
+        now = time.time()
+        with self._lock:
+            self._used_login_tokens = {
+                key: expiry for key, expiry in self._used_login_tokens.items()
+                if expiry > now
+            }
+            if token in self._used_login_tokens:
+                return False
+            self._used_login_tokens[token] = now + QR_LOGIN_TTL
+        return True
 
     # ── login throttling ────────────────────────────────────────────
     def _client(self) -> str:
