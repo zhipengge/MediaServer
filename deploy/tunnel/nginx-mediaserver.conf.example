@@ -1,24 +1,34 @@
 # /etc/nginx/sites-available/mediaserver
-# Replace media.example.com and the certificate paths. The upstream is the
-# reverse tunnel bound to 127.0.0.1 on the VPS.
+#
+# __DOMAIN__ and __HTTPS_PORT__ are substituted by setup-vps.sh.
+# Port 80 is only used for ACME HTTP-01 and a redirect.
+# The upstream is an SSH reverse tunnel bound to 127.0.0.1 on the VPS.
 
 limit_req_zone $binary_remote_addr zone=mediaserver_login:10m rate=5r/m;
 
 server {
     listen 80;
     listen [::]:80;
-    server_name media.example.com;
-    return 301 https://$host$request_uri;
+    server_name __DOMAIN__;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+        default_type text/plain;
+    }
+
+    location / {
+        return 301 https://$host:__HTTPS_PORT__$request_uri;
+    }
 }
 
 server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
+    listen __HTTPS_PORT__ ssl;
+    listen [::]:__HTTPS_PORT__ ssl;
     http2 on;
-    server_name media.example.com;
+    server_name __DOMAIN__;
 
-    ssl_certificate     /etc/letsencrypt/live/media.example.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/media.example.com/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/__DOMAIN__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__DOMAIN__/privkey.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_prefer_server_ciphers off;
     ssl_session_cache shared:SSL:10m;
@@ -33,7 +43,7 @@ server {
     client_max_body_size 1g;
     client_body_timeout 300s;
 
-    # Optional second factor at the proxy layer. Create the file with:
+    # Optional second factor at the proxy layer:
     #   htpasswd -c /etc/nginx/mediaserver.htpasswd viewer
     # auth_basic "MediaServer";
     # auth_basic_user_file /etc/nginx/mediaserver.htpasswd;
@@ -49,16 +59,3 @@ server {
         include /etc/nginx/mediaserver-proxy.conf;
     }
 }
-
-# /etc/nginx/mediaserver-proxy.conf
-#   proxy_http_version 1.1;
-#   proxy_set_header Host $host;
-#   proxy_set_header X-Real-IP $remote_addr;
-#   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-#   proxy_set_header X-Forwarded-Proto $scheme;
-#   proxy_set_header X-Forwarded-Host $host;
-#   proxy_buffering off;          # needed for Range / large media
-#   proxy_request_buffering off;  # stream uploads instead of spooling
-#   proxy_read_timeout 300s;
-#   proxy_send_timeout 300s;
-#   proxy_connect_timeout 10s;

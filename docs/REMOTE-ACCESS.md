@@ -20,8 +20,12 @@ MediaServer 本身按「受信局域网」设计，**不要**把 8080 直接映�
  └─────────────────────────────┘
 ```
 
-好处：NAS 不开放任何入站端口；VPS 只暴露 443；TLS 与限流在 VPS 终止；
+好处：NAS 不开放任何入站端口；VPS 只暴露一个 HTTPS 端口；TLS 与限流在 VPS 终止；
 应用层还有一层令牌。文档里的 `media.example.com` / `vps.example.com` 都是占位。
+
+> 如果 VPS 的 443 已被别的服务占用（例如 danted 代理），用 `HTTPS_PORT=8443` 部署，
+> 对外地址就是 `https://media.example.com:8443`。`setup-vps.sh` 已支持这个变量，
+> 80 端口只用于 ACME 验证与跳转。
 
 ## 1. 在 NAS 上开启令牌模式
 
@@ -38,7 +42,7 @@ MEDIA_AUTH_MODE=token
 MEDIA_TOKEN=$TOKEN
 MEDIA_TRUST_PROXY=1
 MEDIA_COOKIE_SECURE=1
-MEDIA_PUBLIC_URL=https://media.example.com
+MEDIA_PUBLIC_URL=https://media.example.com:8443
 EOF
 sudo systemctl restart mediaserver
 curl -fsS http://127.0.0.1:8080/api/v1/status   # status 仍公开，便于健康检查
@@ -51,7 +55,7 @@ curl -fsS http://127.0.0.1:8080/api/v1/status   # status 仍公开，便于健�
 
 ```bash
 # 以 root 运行，脚本会安装 nginx/certbot/fail2ban、创建 tunnel 用户并申请证书
-sudo ./deploy/tunnel/setup-vps.sh media.example.com you@example.com
+sudo HTTPS_PORT=8443 ./deploy/tunnel/setup-vps.sh media.example.com you@example.com
 
 # 放行 80/443（按你的防火墙工具）
 sudo ufw allow 80/tcp
@@ -102,14 +106,14 @@ sudo systemctl status mediaserver-tunnel --no-pager
 
 ```bash
 # 从任意外网机器
-curl -fsS https://media.example.com/api/v1/status
+curl -fsS https://media.example.com:8443/api/v1/status
 curl -fsS -H "Authorization: Bearer $TOKEN" \
      https://media.example.com/api/v1/search?q=test
 curl -sI -H 'Range: bytes=0-1023' \
      https://media.example.com/media/music/example.mp3 | head
 ```
 
-浏览器打开 `https://media.example.com/login`，输入 `MEDIA_TOKEN`。
+浏览器打开 `https://media.example.com:8443/login`，输入 `MEDIA_TOKEN`。
 
 ## 5. 加固清单
 
@@ -128,6 +132,7 @@ curl -sI -H 'Range: bytes=0-1023' \
 | 方案 | 说明 |
 |---|---|
 | frp | `frpc` 在 NAS，`frps` 在 VPS；把 `remote_port` 绑到 `127.0.0.1`，同样用 nginx 反代 |
+| 无 sudo | `deploy/tunnel/run-tunnel.sh` 是用户级重连循环，配合 `crontab @reboot` 使用 |
 | Cloudflare Tunnel | 不需要公网 IP；`cloudflared` 出站连接；注意免费版 100MB 上传限制 |
 | Tailscale / WireGuard | 只给设备组网，不暴露公网；最省心的私密方案 |
 | 端口映射 | ❌ 不建议：8080 直接暴露等于把无鉴权接口交给互联网 |
