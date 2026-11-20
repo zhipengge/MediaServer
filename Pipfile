@@ -9,6 +9,7 @@ waitress = ">=3.0,<4"
 mutagen = ">=1.47,<2"
 pillow = ">=10.0,<12"
 requests = ">=2.31,<3"
+pypinyin = ">=0.53,<1"
 
 [dev-packages]
 pytest = ">=8.0,<9"

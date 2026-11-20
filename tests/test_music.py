@@ -82,3 +82,44 @@ def test_listen_page_does_not_duplicate_global_player(app, client, config):
     page = client.get(f"/listen/{item['id']}").get_data(as_text=True)
     assert 'id="ms-player"' not in page
     assert 'id="player"' in page
+
+
+def test_artist_index_and_page(app, client, config):
+    _seed(app, config, name="One", artist="周杰伦", album="First")
+    _seed(app, config, name="Two", artist="周杰伦", album="First")
+
+    artists = client.get("/api/v1/artists").get_json()["artists"]
+    entry = next(row for row in artists if row["name"] == "周杰伦")
+    assert entry["id"]
+
+    page = client.get(f"/artist/{entry['id']}")
+    assert page.status_code == 200
+    body = page.get_data(as_text=True)
+    assert "周杰伦" in body and "One" in body and "Two" in body
+    assert "播放全部" in body
+
+    index = client.get("/music?tab=artists").get_data(as_text=True)
+    assert 'id="letter-Z"' in index
+    assert f"/artist/{entry['id']}" in index
+
+
+def test_artist_page_404(client):
+    assert client.get("/artist/" + "0" * 16).status_code == 404
+
+
+def test_top_played_tab(app, client, config):
+    item = _seed(app, config, name="Hit", artist="A")
+    for _ in range(3):
+        client.post("/api/v1/progress", json={
+            "itemId": item["id"], "position": 1.0, "duration": 2.0, "played": True,
+        })
+    body = client.get("/music?tab=top").get_data(as_text=True)
+    assert "Hit" in body
+    assert "按播放次数" in body
+
+
+def test_home_has_four_charts(app, client, config):
+    _seed(app, config)
+    body = client.get("/").get_data(as_text=True)
+    for label in ("最近添加", "最近播放", "我的收藏", "播放最多"):
+        assert label in body

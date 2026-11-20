@@ -451,3 +451,36 @@ body { padding-bottom: 92px; }
   .music-head { align-items: flex-start; }
   .track-table .col-album, .track-table th:nth-child(4) { display: none; }
 }
+
+/* ── charts / artist index ───────────────────────────────── */
+.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+.chart {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg-elevated); padding: 16px 18px;
+}
+.chart h3 { font-size: .9rem; color: var(--accent); margin-bottom: 10px; }
+.chart ol { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 8px; counter-reset: chart; }
+.chart li { display: flex; gap: 8px; align-items: baseline; font-size: .84rem; counter-increment: chart; }
+.chart li::before { content: counter(chart); color: var(--muted); width: 14px; flex: none; }
+.chart li a { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chart li a:hover { color: var(--accent); }
+.chart li span { color: var(--muted); font-size: .74rem; margin-left: auto; max-width: 40%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chart-more { font-size: .78rem; }
+.letter-index {
+  display: flex; flex-wrap: wrap; gap: 4px; margin: 14px 0 20px;
+  position: sticky; top: 64px; z-index: 5;
+  background: var(--bg); padding: 8px 0;
+}
+.letter-index a {
+  width: 28px; height: 28px; display: grid; place-items: center;
+  border-radius: 8px; border: 1px solid var(--border);
+  color: var(--text); font-size: .8rem;
+}
+.letter-index a:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.artist-letter { margin-bottom: 22px; }
+.artist-letter h2 { font-size: .95rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.artist-hero { display: flex; gap: 24px; align-items: center; margin-bottom: 28px; flex-wrap: wrap; }
+.artist-avatar { width: 150px; height: 150px; border-radius: 50%; overflow: hidden; border: 1px solid var(--border); background: var(--bg-soft); flex: none; }
+.artist-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.artist-avatar .poster-fallback { width: 100%; height: 100%; font-size: 2.4rem; }
+.artist-meta h1 { font-size: 1.9rem; margin: .1em 0; }

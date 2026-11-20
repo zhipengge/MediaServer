@@ -4,6 +4,16 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.3] - 2026-11-20
+
+### Added
+
+- Artist A-Z index (pinyin initials) and dedicated `/artist/<id>` pages with
+  avatar, albums and full song list.
+- Four home charts: recently added, recently played, favorites, most played;
+  a `最常播放` tab in the music hub.
+- Artist ids in `/api/v1/artists`.
+
 ## [1.3.2] - 2026-11-20
 
 ### Fixed

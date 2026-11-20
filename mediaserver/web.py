@@ -20,12 +20,14 @@ from flask import (
 )
 
 from .auth import QR_LOGIN_TTL
+from .util import artist_id as make_artist_id
+from .util import artist_initial
 
 bp = Blueprint("web", __name__)
 
 KIND_LABELS = {"audio": "音乐", "video": "视频", "image": "图片", "doc": "文档"}
 PER_PAGE = 36
-MUSIC_TABS = ("songs", "albums", "artists", "favorites", "recent")
+MUSIC_TABS = ("songs", "albums", "artists", "favorites", "recent", "top")
 
 
 def svc():
@@ -60,8 +62,15 @@ def index():
     images = s.db.list_items(kind="image", sort="recent", limit=8)
     continue_audio = s.db.recent_progress(limit=6, kind="audio")
     continue_video = s.db.recent_progress(limit=6, kind="video")
+    charts = {
+        "recent": [s.library.item_payload(row, base) for row in recent[:5]],
+        "played": [s.library.item_payload(row, base) for row in continue_audio[:5]],
+        "favorites": [s.library.item_payload(row, base) for row in s.db.favorite_rows(limit=5)],
+        "top": [s.library.item_payload(row, base) for row in s.db.top_played(limit=5)],
+    }
     return render_template(
         "index.html",
+        charts=charts,
         recent=[s.library.item_payload(row, base) for row in recent],
         videos=[s.library.item_payload(row, base) for row in videos],
         images=[s.library.item_payload(row, base) for row in images],
@@ -123,6 +132,7 @@ def music_page():
     songs: list[dict] = []
     albums: list[dict] = []
     artists: list[dict] = []
+    artist_groups: list[dict] = []
 
     if tab == "albums":
         albums = [
@@ -131,16 +141,29 @@ def music_page():
             for row in s.db.albums()
         ]
     elif tab == "artists":
-        artists = [
-            {"name": row["artist"], "count": row["n"], "albums": row["albums"],
-             "cover": f"/api/v1/cover/{row['cover_id']}" if row["cover_id"] else None}
-            for row in s.db.artists()
-        ]
+        groups: dict[str, list[dict]] = {}
+        for row in s.db.artists():
+            if q and q.casefold() not in row["artist"].casefold():
+                continue
+            entry = {
+                "id": make_artist_id(row["artist"]),
+                "name": row["artist"],
+                "count": row["n"],
+                "albums": row["albums"],
+                "cover": f"/api/v1/cover/{row['cover_id']}" if row["cover_id"] else None,
+            }
+            groups.setdefault(artist_initial(row["artist"]), []).append(entry)
+        artists = [artist for letter in sorted(groups, key=lambda x: (x == "#", x))
+                   for artist in sorted(groups[letter], key=lambda a: a["name"].casefold())]
+        artist_groups = [{"letter": letter, "artists": groups[letter]}
+                         for letter in sorted(groups, key=lambda x: (x == "#", x))]
     else:
         if tab == "favorites":
             rows = s.db.favorite_rows(limit=300)
         elif tab == "recent":
             rows = s.db.recent_progress(limit=60, kind="audio")
+        elif tab == "top":
+            rows = s.db.top_played(limit=100)
         else:
             rows = s.db.list_items(kind="audio", q=q, album=album, artist=artist,
                                    sort="name", limit=300)
@@ -157,8 +180,41 @@ def music_page():
         album=album,
         artist=artist,
         favorite_ids=favorite_ids,
+        artist_groups=artist_groups,
         playlists=[dict(entry) for entry in s.db.list_playlists()],
         counts=s.db.counts(),
+    )
+
+
+@bp.get("/artist/<artist_key>")
+def artist_page(artist_key):
+    s = svc()
+    base = s.config.public_base(request.host)
+    name = next((candidate for candidate in s.db.artist_names()
+                 if make_artist_id(candidate) == artist_key), None)
+    if name is None:
+        return render_template("error.html", code=404, message="歌手不存在"), 404
+    rows = s.db.list_items(kind="audio", artist=name, sort="name", limit=500)
+    songs = [s.library.item_payload(row, base) for row in rows]
+    album_map: dict[str, dict] = {}
+    cover = None
+    for row in rows:
+        if cover is None and row["has_cover"]:
+            cover = f"/api/v1/cover/{row['id']}"
+        album_name = row["album"] or ""
+        if not album_name:
+            continue
+        entry = album_map.setdefault(
+            album_name, {"name": album_name, "count": 0, "cover": None})
+        entry["count"] += 1
+        if entry["cover"] is None and row["has_cover"]:
+            entry["cover"] = f"/api/v1/cover/{row['id']}"
+    return render_template(
+        "artist.html",
+        artist={"id": artist_key, "name": name, "cover": cover},
+        songs=songs,
+        albums=sorted(album_map.values(), key=lambda item: item["name"].casefold()),
+        favorite_ids=sorted(s.db.favorite_ids()),
     )
 
 

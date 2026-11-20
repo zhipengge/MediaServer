@@ -68,6 +68,41 @@ def is_hidden(path: Path) -> bool:
     return any(part.startswith(".") for part in path.parts if part not in ("/", "."))
 
 
+_INITIAL_CACHE: dict[str, str] = {}
+
+
+def artist_id(name: str) -> str:
+    """Stable id for an artist name (URL-safe, independent of ordering)."""
+    return hashlib.sha1(("artist:" + (name or "")).encode("utf-8", "surrogateescape")).hexdigest()[:16]
+
+
+def artist_initial(name: str) -> str:
+    """Pinyin/latin first letter bucket for the A-Z artist index."""
+    name = (name or "").strip()
+    if not name:
+        return "#"
+    cached = _INITIAL_CACHE.get(name)
+    if cached is not None:
+        return cached
+    first = name[0]
+    if first.isascii() and first.isalpha():
+        initial = first.upper()
+    elif first.isdigit():
+        initial = "#"
+    else:
+        initial = "#"
+        try:
+            from pypinyin import Style, lazy_pinyin
+
+            letters = lazy_pinyin(name, style=Style.FIRST_LETTER, errors="default")
+            if letters and letters[0] and letters[0][0].isalpha():
+                initial = letters[0][0].upper()
+        except Exception:
+            pass
+    _INITIAL_CACHE[name] = initial
+    return initial
+
+
 def item_id(rel: str) -> str:
     """Stable, URL-safe id for a mount-relative path."""
     return hashlib.sha1(rel.encode("utf-8", "surrogateescape")).hexdigest()[:20]

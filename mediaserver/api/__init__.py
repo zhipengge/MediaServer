@@ -18,6 +18,7 @@ from ..media import lrc_response, send_media
 from ..share import ShareError
 from ..util import (
     KIND_BY_EXT,
+    artist_id,
     media_url,
     resolve_rel,
     safe_rel,
@@ -473,7 +474,8 @@ def artists():
     s = services()
     rows = s.db.artists(limit=max(1, min(1000, int(request.args.get("limit", 300)))))
     return ok({"artists": [
-        {"name": row["artist"], "count": row["n"], "albums": row["albums"],
+        {"id": artist_id(row["artist"]),
+         "name": row["artist"], "count": row["n"], "albums": row["albums"],
          "cover": f"/api/v1/cover/{row['cover_id']}" if row["cover_id"] else None}
         for row in rows
     ]})

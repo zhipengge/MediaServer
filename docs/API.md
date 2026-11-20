@@ -175,7 +175,7 @@
 | POST | `/api/v1/rescan` | 触发一次后台扫描，返回 `202` |
 | POST | `/api/v1/upload` | multipart `file`，落 `DATA_DIR/uploads/`，返回 `201` |
 | GET | `/api/v1/albums` | 专辑聚合（名称、歌手、曲目数、封面） |
-| GET | `/api/v1/artists` | 歌手聚合（曲目数、专辑数、封面） |
+| GET | `/api/v1/artists` | 歌手聚合（id、曲目数、专辑数、封面） |
 | GET | `/api/v1/favorites` | 收藏列表 |
 | PUT | `/api/v1/favorites/<id>` | 收藏 |
 | DELETE | `/api/v1/favorites/<id>` | 取消收藏 |
@@ -238,7 +238,8 @@ curl -H "X-API-Token: $MEDIA_TOKEN" http://127.0.0.1:8080/api/v1/items
 |---|---|
 | `/` | 首页（统计、接着播放、最近添加） |
 | `/library?kind=&q=&sort=&page=` | 媒体库（`kind=audio` 会跳到 `/music`） |
-| `/music?tab=songs\|albums\|artists\|favorites\|recent` | 音乐中心 |
+| `/music?tab=songs\|albums\|artists\|favorites\|recent\|top` | 音乐中心 |
+| `/artist/<id>` | 歌手详情（头像、专辑、全部曲目） |
 | `/listen/<id>` | 音频播放器（队列、歌词同步） |
 | `/watch/<id>` | 视频播放（直链或 HLS） |
 | `/view/<id>` | 图片查看 |

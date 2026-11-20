@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_macros.html" import track_table %}
+{% block title %}{{ artist.name }}{% endblock %}
+{% block content %}
+<section class="artist-hero">
+  <div class="artist-avatar">
+    {% if artist.cover %}<img src="{{ artist.cover }}" alt="">{% else %}<div class="poster-fallback">♪</div>{% endif %}
+  </div>
+  <div class="artist-meta">
+    <p class="muted"><a href="{{ url_for('web.music_page') }}?tab=artists">歌手</a> /</p>
+    <h1>{{ artist.name }}</h1>
+    <p class="muted">{{ songs|length }} 首曲目{% if albums %} · {{ albums|length }} 张专辑{% endif %}</p>
+    <div class="player-actions">
+      <button type="button" class="btn" id="play-all">▶ 播放全部</button>
+      <a class="btn btn-ghost" href="{{ url_for('web.music_page') }}?tab=songs&amp;artist={{ artist.name|urlencode }}">在歌曲列表筛选</a>
+    </div>
+  </div>
+</section>
+
+{% if albums %}
+<section>
+  <h2>专辑</h2>
+  <div class="album-grid">
+    {% for album in albums %}
+    <a class="album-card" href="{{ url_for('web.music_page') }}?tab=songs&amp;album={{ album.name|urlencode }}">
+      <div class="album-art">
+        {% if album.cover %}<img src="{{ album.cover }}" alt="" loading="lazy">{% else %}<div class="poster-fallback">♫</div>{% endif %}
+      </div>
+      <div class="album-name">{{ album.name }}</div>
+      <div class="album-sub">{{ album.count }} 首</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section>
+  <h2>歌曲 <span class="muted">{{ songs|length }}</span></h2>
+  {% if songs %}
+  {{ track_table(songs, favorite_ids) }}
+  <script type="application/json" id="music-data">{{ {"songs": songs} | tojson }}</script>
+  {% else %}
+  <div class="empty">这位歌手还没有可播放的曲目。</div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/music.js') }}?v={{ server.version }}" defer></script>
+{% endblock %}

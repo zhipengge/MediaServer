@@ -25,16 +25,45 @@
 {% endif %}
 
 <section>
-  <h2>最近添加</h2>
-  {% if recent %}
-  <div class="row">
-    {% for item in recent %}{{ media_card(item) }}{% endfor %}
+  <h2>榜单</h2>
+  <div class="chart-grid">
+    <div class="chart">
+      <h3>最近添加</h3>
+      <ol>
+        {% for item in charts.recent %}
+        <li><a href="{{ url_for('web.listen', item=item.id) }}">{{ item.title }}</a><span>{{ item.artist }}</span></li>
+        {% else %}<li class="muted">暂无</li>{% endfor %}
+      </ol>
+      <a class="chart-more" href="{{ url_for('web.music_page') }}?tab=songs">全部歌曲</a>
+    </div>
+    <div class="chart">
+      <h3>最近播放</h3>
+      <ol>
+        {% for item in charts.played %}
+        <li><a href="{{ url_for('web.listen', item=item.id) }}">{{ item.title }}</a><span>{{ item.artist }}</span></li>
+        {% else %}<li class="muted">暂无</li>{% endfor %}
+      </ol>
+      <a class="chart-more" href="{{ url_for('web.music_page') }}?tab=recent">全部记录</a>
+    </div>
+    <div class="chart">
+      <h3>我的收藏</h3>
+      <ol>
+        {% for item in charts.favorites %}
+        <li><a href="{{ url_for('web.listen', item=item.id) }}">{{ item.title }}</a><span>{{ item.artist }}</span></li>
+        {% else %}<li class="muted">还没有收藏</li>{% endfor %}
+      </ol>
+      <a class="chart-more" href="{{ url_for('web.music_page') }}?tab=favorites">全部收藏</a>
+    </div>
+    <div class="chart">
+      <h3>播放最多</h3>
+      <ol>
+        {% for item in charts.top %}
+        <li><a href="{{ url_for('web.listen', item=item.id) }}">{{ item.title }}</a><span>{{ item.artist }}</span></li>
+        {% else %}<li class="muted">还没有播放统计</li>{% endfor %}
+      </ol>
+      <a class="chart-more" href="{{ url_for('web.music_page') }}?tab=top">完整榜单</a>
+    </div>
   </div>
-  {% else %}
-  <div class="empty">
-    <p>曲库还是空的。把文件放进 <code>music/</code>、<code>videos/</code>、<code>images/</code> 或 <code>docs/</code>，然后在<a href="{{ url_for('web.settings_page') }}">设置</a>里重新扫描。</p>
-  </div>
-  {% endif %}
 </section>
 
 {% if videos %}

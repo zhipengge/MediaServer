@@ -371,6 +371,18 @@ class Database:
             "FROM items WHERE kind = 'audio' AND COALESCE(artist, '') != '' "
             "GROUP BY artist ORDER BY artist COLLATE NOCASE LIMIT ?", (limit,))
 
+    def top_played(self, limit: int = 20, kind: str = "audio") -> list[sqlite3.Row]:
+        return self.query(
+            "SELECT i.*, p.plays AS plays FROM progress p JOIN items i ON i.id = p.item_id "
+            "WHERE i.kind = ? AND p.plays > 0 ORDER BY p.plays DESC, p.updated_at DESC LIMIT ?",
+            (kind, limit))
+
+    def artist_names(self) -> list[str]:
+        rows = self.query(
+            "SELECT DISTINCT artist FROM items WHERE kind = 'audio' "
+            "AND COALESCE(artist, '') != '' ORDER BY artist COLLATE NOCASE")
+        return [row["artist"] for row in rows]
+
     # ── scan state ──────────────────────────────────────────────────
     def state_get(self, key: str, default: Any = None) -> Any:
         row = self.query_one("SELECT v FROM scan_state WHERE k = ?", (key,))
