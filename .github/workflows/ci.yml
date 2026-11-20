@@ -22,7 +22,7 @@ jobs:
       - name: Lint
         run: pipenv run ruff check .
       - name: Tests
-        run: pipenv run pytest -q
+        run: pipenv run python -m pytest -q
       - name: Personal-information scan
         run: pipenv run python scripts/security_scan.py .
       - name: Build demo library
