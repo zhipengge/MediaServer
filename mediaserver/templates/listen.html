@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, badge %}
+{% block title %}{{ item.title }}{% endblock %}
+{% block content %}
+<div class="player-layout">
+  <div class="player-main">
+    <div class="now-playing">
+      <div class="cover-big">{{ poster(item) }}</div>
+      <div class="np-meta">
+        <h1>{{ item.title }}</h1>
+        <p class="muted">
+          {% if item.artist %}{{ item.artist }}{% endif %}
+          {% if item.album %}<span class="dot">·</span>{{ item.album }}{% endif %}
+          {% if item.year %}<span class="dot">·</span>{{ item.year }}{% endif %}
+          {{ badge(item.kind) }}
+        </p>
+        <audio id="player" controls preload="metadata"></audio>
+        <div class="player-actions">
+          <a class="btn" href="{{ url_for('api.download') }}?item={{ item.id }}" download>下载</a>
+          {% if item.lyricsUrl %}<a class="btn btn-ghost" href="{{ item.lyricsUrl }}" target="_blank" rel="noopener">LRC</a>{% endif %}
+          {% if playlists %}
+          <select id="playlist-select" class="select" aria-label="选择播放列表">
+            {% for playlist in playlists %}<option value="{{ playlist.id }}">{{ playlist.name }}</option>{% endfor %}
+          </select>
+          <button class="btn" id="add-to-playlist">加入播放列表</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <section class="lyrics" id="lyrics">
+      {% if lyrics %}<p class="muted">歌词加载中…</p>{% else %}<p class="muted">这首曲目没有歌词。</p>{% endif %}
+    </section>
+  </div>
+
+  <aside class="queue">
+    <h2>播放队列 <span class="muted">({{ queue|length }})</span></h2>
+    <ol class="queue-list" id="queue-list"></ol>
+  </aside>
+</div>
+
+<script type="application/json" id="player-data">{{ {"item": item, "queue": queue, "lyrics": lyrics, "position": position} | tojson }}</script>
+<script src="{{ url_for('static', filename='js/player.js') }}" defer></script>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "_macros.html" import media_card %}
+{% block content %}
+<section class="hero">
+  <div>
+    <h1>家里的影音库</h1>
+    <p class="muted">音乐、视频、图片与文档都在这里。局域网直连，凭 URL 即可接入牧云音乐等客户端。</p>
+  </div>
+  <div class="stats">
+    <div class="stat"><span class="stat-num">{{ counts.audio or 0 }}</span><span>音乐</span></div>
+    <div class="stat"><span class="stat-num">{{ counts.video or 0 }}</span><span>视频</span></div>
+    <div class="stat"><span class="stat-num">{{ counts.image or 0 }}</span><span>图片</span></div>
+    <div class="stat"><span class="stat-num">{{ counts.doc or 0 }}</span><span>文档</span></div>
+  </div>
+</section>
+
+{% if continue_video or continue_audio %}
+<section>
+  <h2>接着播放</h2>
+  <div class="row">
+    {% for item in continue_video %}{{ media_card(item) }}{% endfor %}
+    {% for item in continue_audio %}{{ media_card(item) }}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section>
+  <h2>最近添加</h2>
+  {% if recent %}
+  <div class="row">
+    {% for item in recent %}{{ media_card(item) }}{% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">
+    <p>曲库还是空的。把文件放进 <code>music/</code>、<code>videos/</code>、<code>images/</code> 或 <code>docs/</code>，然后在<a href="{{ url_for('web.settings_page') }}">设置</a>里重新扫描。</p>
+  </div>
+  {% endif %}
+</section>
+
+{% if videos %}
+<section>
+  <h2>视频</h2>
+  <div class="row">
+    {% for item in videos %}{{ media_card(item) }}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if images %}
+<section>
+  <h2>图片</h2>
+  <div class="row row-compact">
+    {% for item in images %}{{ media_card(item) }}{% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="api-hint">
+  <h2>客户端接入</h2>
+  <p class="muted">牧云音乐：设置 → 家庭影音配置 → 按 URL 导入清单，填写 <code>/api/v1/manifest</code>。
+  接口文档见 <a href="{{ url_for('web.settings_page') }}">设置</a> 页与仓库里的 <code>docs/API.md</code>。</p>
+  <dl class="kv">
+    <dt>统一检索</dt><dd><code>/api/v1/search?q=关键词</code></dd>
+    <dt>媒体文件</dt><dd><code>/media/&lt;路径&gt;</code>（支持 Range）</dd>
+    <dt>状态</dt><dd><code>/api/v1/status</code></dd>
+  </dl>
+</section>
+{% endblock %}

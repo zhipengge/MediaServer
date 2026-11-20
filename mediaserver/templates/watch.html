@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, badge %}
+{% block title %}{{ item.title }}{% endblock %}
+{% block content %}
+<div class="watch-layout">
+  <div class="watch-stage">
+    <video id="video" controls playsinline preload="metadata"
+           {% if item.thumb or item.cover %}poster="{{ item.thumb or item.cover }}"{% endif %}>
+      你的浏览器不支持内嵌视频。
+    </video>
+    <div id="player-status" class="player-status"></div>
+  </div>
+  <div class="watch-info">
+    <h1>{{ item.title }}</h1>
+    <p class="muted">
+      {% if item.width %}{{ item.width }}×{{ item.height }}{% endif %}
+      {% if item.duration %}<span class="dot">·</span>{{ item.duration|fmt_duration }}{% endif %}
+      {% if item.videoCodec %}<span class="dot">·</span>{{ item.videoCodec }}{% endif %}
+      {% if item.audioCodec %} / {{ item.audioCodec }}{% endif %}
+      {% if item.size %}<span class="dot">·</span>{{ item.size|fmt_size }}{% endif %}
+      {{ badge(item.kind) }}
+    </p>
+    <div class="player-actions">
+      <a class="btn" href="{{ url_for('api.download') }}?item={{ item.id }}" download>下载</a>
+      {% if hls_enabled %}<button class="btn" id="transcode">转码播放</button>{% endif %}
+      <a class="btn btn-ghost" href="{{ item.rawUrl }}" target="_blank" rel="noopener">原始文件</a>
+    </div>
+    <p class="hint muted" id="watch-hint">
+      {% if direct %}
+      这个视频是浏览器可直接播放的格式，会按需拖动、直接流播。
+      {% else %}
+      这个视频的编码浏览器可能不支持。点击「转码播放」会在服务器上生成 HLS 版本（首次需要一点时间）。
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+<script type="application/json" id="watch-data">{{ {"item": item, "direct": direct, "hlsEnabled": hls_enabled, "position": position} | tojson }}</script>
+<script src="{{ url_for('static', filename='vendor/hls.min.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/watch.js') }}" defer></script>
+{% endblock %}

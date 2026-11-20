@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, item_url %}
+{% block title %}{{ name }}{% endblock %}
+{% block content %}
+<section class="library-head">
+  <h1>{{ name }}</h1>
+  <p class="muted">{{ items|length }} 项 · <span class="muted">按加入顺序播放</span></p>
+</section>
+
+{% if items %}
+<ol class="playlist-items">
+  {% for item in items %}
+  <li class="playlist-row" data-item="{{ item.id }}">
+    <a class="playlist-row-link" href="{{ item_url(item) }}">
+      <span class="row-index">{{ loop.index }}</span>
+      <span class="row-art">{{ poster(item) }}</span>
+      <span class="row-text">
+        <span class="row-title">{{ item.title }}</span>
+        <span class="muted">{{ item.artist or '' }}{% if item.duration %} · {{ item.duration|fmt_duration }}{% endif %}</span>
+      </span>
+    </a>
+    <button class="btn btn-ghost remove-item" data-item="{{ item.id }}">移除</button>
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<div class="empty"><p>空列表。到曲目页点「加入播放列表」。</p></div>
+{% endif %}
+
+<script type="application/json" id="playlist-meta">{{ {"id": playlist_id, "name": name} | tojson }}</script>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/playlists.js') }}" defer></script>
+{% endblock %}

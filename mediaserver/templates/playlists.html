@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}播放列表{% endblock %}
+{% block content %}
+<section class="library-head">
+  <h1>播放列表</h1>
+  <form id="playlist-form" class="inline-form">
+    <input type="text" id="playlist-name" placeholder="新播放列表名称" maxlength="80">
+    <button class="btn" type="submit">创建</button>
+    <span class="muted" id="playlist-status"></span>
+  </form>
+</section>
+
+{% if playlists %}
+<div class="playlist-grid">
+  {% for playlist in playlists %}
+  <a class="playlist-card" href="{{ url_for('web.playlist_page', playlist_id=playlist.id) }}">
+    <span class="playlist-count">{{ playlist.n }}</span>
+    <span class="playlist-name">{{ playlist.name }}</span>
+    <span class="muted">创建于 {{ playlist.created_at|fmt_time }}</span>
+  </a>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty"><p>还没有播放列表。创建后可以在曲目页把歌曲加进来。</p></div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/playlists.js') }}" defer></script>
+{% endblock %}

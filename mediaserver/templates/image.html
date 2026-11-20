@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }}{% endblock %}
+{% block content %}
+<div class="image-layout">
+  <figure class="image-stage">
+    <img src="{{ item.rawUrl }}" alt="{{ item.title }}">
+    <figcaption class="muted">{{ item.title }}{% if item.width %} · {{ item.width }}×{{ item.height }}{% endif %}</figcaption>
+  </figure>
+  <div class="image-meta">
+    <h1>{{ item.title }}</h1>
+    <dl class="kv">
+      <dt>尺寸</dt><dd>{{ item.width or '—' }} × {{ item.height or '—' }}</dd>
+      <dt>体积</dt><dd>{{ item.size|fmt_size }}</dd>
+      <dt>路径</dt><dd><code>{{ item.rel }}</code></dd>
+    </dl>
+    <div class="player-actions">
+      <a class="btn" href="{{ url_for('api.download') }}?item={{ item.id }}" download>下载原图</a>
+      <a class="btn btn-ghost" href="{{ url_for('web.library_page') }}?kind=image">回到图片库</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

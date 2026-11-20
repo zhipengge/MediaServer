@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "_macros.html" import media_card %}
+{% block title %}{{ kinds.get(kind, '媒体库') }}{% endblock %}
+{% block content %}
+<section class="library-head">
+  <h1>{{ kinds.get(kind, '全部媒体') }}</h1>
+  <div class="tabs">
+    <a class="tab {% if not kind %}active{% endif %}" href="{{ url_for('web.library_page') }}">全部</a>
+    {% for key, label in kinds.items() %}
+    <a class="tab {% if kind == key %}active{% endif %}" href="{{ url_for('web.library_page') }}?kind={{ key }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  <form class="inline-form" action="{{ url_for('web.library_page') }}" method="get">
+    {% if kind %}<input type="hidden" name="kind" value="{{ kind }}">{% endif %}
+    <label>排序
+      <select name="sort" data-autosubmit>
+        <option value="recent" {% if sort == 'recent' %}selected{% endif %}>最近添加</option>
+        <option value="name" {% if sort == 'name' %}selected{% endif %}>标题</option>
+        <option value="artist" {% if sort == 'artist' %}selected{% endif %}>歌手</option>
+        <option value="duration" {% if sort == 'duration' %}selected{% endif %}>时长</option>
+        <option value="size" {% if sort == 'size' %}selected{% endif %}>体积</option>
+        <option value="mtime" {% if sort == 'mtime' %}selected{% endif %}>修改时间</option>
+      </select>
+    </label>
+    <span class="muted">共 {{ total }} 项</span>
+  </form>
+</section>
+
+{% if q %}<p class="muted">搜索“{{ q }}”的结果</p>{% endif %}
+{% if artist %}<p class="muted">歌手：{{ artist }} · <a href="{{ url_for('web.library_page') }}?kind=audio">清除</a></p>{% endif %}
+
+{% if facets.artists and not q %}
+<section class="facets">
+  <h2>歌手</h2>
+  <div class="chips">
+    {% for artist in facets.artists[:30] %}
+    <a class="chip" href="{{ url_for('web.library_page') }}?kind=audio&amp;artist={{ artist.name|urlencode }}">{{ artist.name }} <span>{{ artist.count }}</span></a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if items %}
+<div class="grid">
+  {% for item in items %}{{ media_card(item) }}{% endfor %}
+</div>
+<nav class="pagination">
+  {% if page > 1 %}
+  <a class="btn" href="{{ url_for('web.library_page') }}?kind={{ kind or '' }}&amp;q={{ q|urlencode }}&amp;sort={{ sort }}&amp;page={{ page - 1 }}">上一页</a>
+  {% endif %}
+  <span class="muted">第 {{ page }} / {{ pages }} 页</span>
+  {% if page < pages %}
+  <a class="btn" href="{{ url_for('web.library_page') }}?kind={{ kind or '' }}&amp;q={{ q|urlencode }}&amp;sort={{ sort }}&amp;page={{ page + 1 }}">下一页</a>
+  {% endif %}
+</nav>
+{% else %}
+<div class="empty">
+  <p>没有找到内容。{% if q %}换个关键词试试。{% else %}先在设置页扫描曲库，或把文件放进媒体目录。{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}

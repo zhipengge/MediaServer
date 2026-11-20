@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>{% block title %}{{ server.name }}{% endblock %} · {{ server.name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('web.index') }}">
+    <span class="brand-mark">M</span>
+    <span class="brand-name">{{ server.name }}</span>
+    <span class="brand-version">v{{ server.version }}</span>
+  </a>
+  <nav class="nav">
+    <a href="{{ url_for('web.library_page') }}?kind=audio">音乐</a>
+    <a href="{{ url_for('web.library_page') }}?kind=video">视频</a>
+    <a href="{{ url_for('web.library_page') }}?kind=image">图片</a>
+    <a href="{{ url_for('web.library_page') }}?kind=doc">文档</a>
+    <a href="{{ url_for('web.shares') }}">分享</a>
+    <a href="{{ url_for('web.playlists_page') }}">播放列表</a>
+    <a href="{{ url_for('web.settings_page') }}">设置</a>
+  </nav>
+  <form class="search" action="{{ url_for('web.library_page') }}" method="get" role="search">
+    <input type="search" name="q" value="{{ q|default('') }}" placeholder="搜索标题、歌手、专辑…" aria-label="搜索">
+    <button type="submit" class="btn btn-ghost">搜索</button>
+  </form>
+  {% if server.auth %}
+  <form action="{{ url_for('web.logout') }}" method="post" class="logout">
+    <button type="submit" class="btn btn-ghost">退出</button>
+  </form>
+  {% endif %}
+</header>
+
+<main class="page">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <span>{{ server.name }} v{{ server.version }}</span>
+  <span class="muted">本地媒体服务器 · {{ counts.total }} 个文件</span>
+</footer>
+
+<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}分享{% endblock %}
+{% block content %}
+<section class="library-head">
+  <h1>分享</h1>
+  <p class="muted">分享的文件放在服务器的 <code>shared/</code> 目录，与曲库隔离；URL 分享只接受本服务器的媒体地址。</p>
+</section>
+
+<section class="upload-panel">
+  <h2>分享一个文件</h2>
+  <form id="share-form" class="form-grid">
+    <label>文件 <input type="file" name="file" required></label>
+    <label>标题 <input type="text" name="title" placeholder="默认用文件名"></label>
+    <label>歌手 <input type="text" name="artist" placeholder="可选"></label>
+    <label>分享人 <input type="text" name="from" placeholder="可选"></label>
+    <div class="form-actions">
+      <button class="btn" type="submit">上传分享</button>
+      <span class="muted" id="share-status"></span>
+    </div>
+    <progress id="share-progress" value="0" max="100" hidden></progress>
+  </form>
+</section>
+
+<section>
+  <h2>已分享 <span class="muted">{{ shares|length }}</span></h2>
+  {% if shares %}
+  <div class="share-list">
+    {% for share in shares %}
+    <div class="share-item">
+      <div>
+        <div class="share-title">{{ share.title }}</div>
+        <div class="muted">
+          {% if share.artist %}{{ share.artist }} · {% endif %}
+          {% if share['from'] %}来自 {{ share['from'] }} · {% endif %}
+          {{ share.sharedAt|fmt_time }}
+        </div>
+      </div>
+      <audio controls preload="none" src="{{ share.playUrl }}"></audio>
+      <a class="btn btn-ghost" href="{{ share.playUrl }}" download>下载</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty"><p>还没有分享。上面的表单可以上传第一个。</p></div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/shares.js') }}" defer></script>
+{% endblock %}

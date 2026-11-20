@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}登录{% endblock %}
+{% block content %}
+<section class="login-panel">
+  <h1>需要口令</h1>
+  <p class="muted">这台服务器开启了令牌认证。输入访问口令后，浏览器会保持一个签名会话。</p>
+  <form method="post" action="{{ url_for('web.login_post') }}" class="login-form">
+    <input type="hidden" name="next" value="{{ next }}">
+    <label>访问口令
+      <input type="password" name="token" autocomplete="current-password" autofocus required>
+    </label>
+    <button class="btn" type="submit">进入</button>
+  </form>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <p class="hint muted">API 客户端请使用 <code>Authorization: Bearer &lt;token&gt;</code>。</p>
+</section>
+{% endblock %}

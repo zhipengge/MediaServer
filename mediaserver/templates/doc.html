@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ item.title }}{% endblock %}
+{% block content %}
+<div class="doc-layout">
+  <div class="doc-head">
+    <h1>{{ item.title }}</h1>
+    <p class="muted">{{ item.rel }} · {{ item.size|fmt_size }}</p>
+    <div class="player-actions">
+      <a class="btn" href="{{ url_for('api.download') }}?item={{ item.id }}" download>下载</a>
+      <a class="btn btn-ghost" href="{{ item.rawUrl }}" target="_blank" rel="noopener">新窗口打开</a>
+    </div>
+  </div>
+  {% if is_text %}
+  <pre class="doc-text">{{ text }}</pre>
+  {% elif item.mime == 'application/pdf' %}
+  <iframe class="doc-frame" src="{{ item.rawUrl }}" title="{{ item.title }}"></iframe>
+  {% else %}
+  <div class="empty"><p>这个文档类型无法直接预览，请下载后打开。</p></div>
+  {% endif %}
+</div>
+{% endblock %}

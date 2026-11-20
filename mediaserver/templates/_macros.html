@@ -1,0 +1,36 @@
+{% macro item_url(item) -%}
+{%- if item.kind == 'audio' -%}/listen/{{ item.id }}
+{%- elif item.kind == 'video' -%}/watch/{{ item.id }}
+{%- elif item.kind == 'image' -%}/view/{{ item.id }}
+{%- else -%}/read/{{ item.id }}
+{%- endif -%}
+{%- endmacro %}
+
+{% macro poster(item) -%}
+{%- set img = item.cover or item.thumb -%}
+{%- if img -%}
+<img class="poster" src="{{ img }}" alt="" loading="lazy" decoding="async">
+{%- else -%}
+<div class="poster poster-fallback" aria-hidden="true">
+  <span>{{ {'audio':'♪','video':'▶','image':'▣','doc':'▤'}.get(item.kind, '·') }}</span>
+</div>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro media_card(item) -%}
+<a class="card" href="{{ item_url(item) }}">
+  <div class="card-art">{{ poster(item) }}</div>
+  <div class="card-body">
+    <div class="card-title" title="{{ item.title }}">{{ item.title }}</div>
+    <div class="card-sub">
+      {% if item.artist %}{{ item.artist }}{% endif %}
+      {% if item.duration %}<span class="dot">·</span>{{ item.duration|fmt_duration }}{% endif %}
+      {% if item.kind == 'image' and item.width %}<span class="dot">·</span>{{ item.width }}×{{ item.height }}{% endif %}
+    </div>
+  </div>
+</a>
+{%- endmacro %}
+
+{% macro badge(kind) -%}
+<span class="badge badge-{{ kind }}">{{ {'audio':'音乐','video':'视频','image':'图片','doc':'文档'}.get(kind, kind) }}</span>
+{%- endmacro %}

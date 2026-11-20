@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}设置{% endblock %}
+{% block content %}
+<section class="library-head">
+  <h1>服务器状态</h1>
+  <p class="muted">{{ status.name }} v{{ status.version }}</p>
+</section>
+
+<div class="panel-grid">
+  <section class="panel">
+    <h2>媒体库</h2>
+    <dl class="kv">
+      <dt>音乐 / 视频 / 图片 / 文档</dt>
+      <dd>{{ status.counts.audio or 0 }} / {{ status.counts.video or 0 }} / {{ status.counts.image or 0 }} / {{ status.counts.doc or 0 }}</dd>
+      <dt>上次扫描</dt><dd>{{ status.scan.lastScan|fmt_time or '从未' }}</dd>
+      <dt>耗时</dt><dd>{{ status.scan.lastScanDuration or '—' }} 秒</dd>
+      <dt>自动扫描间隔</dt><dd>{{ status.scanInterval }} 秒</dd>
+      <dt>音乐目录</dt><dd><code>{{ status.musicRoot }}</code></dd>
+      <dt>数据目录</dt><dd><code>{{ status.dataDir }}</code></dd>
+    </dl>
+    <button class="btn" id="rescan">重新扫描</button>
+    <span class="muted" id="rescan-status"></span>
+  </section>
+
+  <section class="panel">
+    <h2>能力</h2>
+    <dl class="kv">
+      <dt>视频转码（HLS）</dt><dd>{{ '已启用' if status.hlsEnabled else '关闭' }} · {{ status.hlsHeight }}p / {{ status.hlsSegment }}s</dd>
+      <dt>ffmpeg / ffprobe</dt><dd>{{ '有' if status.ffmpeg else '无' }} / {{ '有' if status.ffprobe else '无' }}</dd>
+      <dt>分享上限</dt><dd>{{ status.shareMaxMB }} MB</dd>
+      <dt>上传上限</dt><dd>{{ status.uploadMaxMB }} MB</dd>
+      <dt>外接音源中转</dt><dd>{{ '开启' if status.relay else '关闭' }}</dd>
+    </dl>
+    {% if status.relay %}<p class="muted">上游：<code>{{ status.relayBase }}</code></p>{% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>安全</h2>
+    <dl class="kv">
+      <dt>令牌认证</dt><dd>{{ '已开启' if status.auth else '未开启（仅适合受信局域网）' }}</dd>
+      <dt>跨域来源</dt><dd>{{ '已配置' if status.cors else '未配置（默认拒绝跨域）' }}</dd>
+      <dt>安全 Cookie</dt><dd>{{ '是' if status.cookieSecure else '否' }}</dd>
+      <dt>对外地址</dt><dd><code>{{ status.publicUrl }}</code></dd>
+    </dl>
+    {% if not status.auth %}
+    <p class="hint">如果要通过反向代理暴露到外网，请设置 <code>MEDIA_AUTH_MODE=token</code> 与 <code>MEDIA_TOKEN</code>，并按 <code>docs/REMOTE-ACCESS.md</code> 部署 TLS。</p>
+    {% endif %}
+  </section>
+
+  <section class="panel">
+    <h2>接口速查</h2>
+    <dl class="kv">
+      <dt>清单</dt><dd><code>/api/v1/manifest</code></dd>
+      <dt>检索</dt><dd><code>/api/v1/search?q=</code></dd>
+      <dt>媒体</dt><dd><code>/media/&lt;路径&gt;</code></dd>
+      <dt>状态</dt><dd><code>/api/v1/status</code></dd>
+      <dt>分享列表</dt><dd><code>/api/v1/shared</code></dd>
+    </dl>
+  </section>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/settings.js') }}" defer></script>
+{% endblock %}
