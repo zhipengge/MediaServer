@@ -1,5 +1,7 @@
 # MediaServer
 
+[![CI](https://github.com/zhipengge/MediaServer/actions/workflows/ci.yml/badge.svg)](https://github.com/zhipengge/MediaServer/actions/workflows/ci.yml)
+
 家庭多媒体服务器：把 NAS 上的**音乐、视频、图片、文档**索引成一个统一的 HTTP 服务，
 自带网页客户端，并完整兼容牧云音乐的
 [NAS-DEPLOY 契约](https://github.com/zhipengge/apps/blob/main/muyunmusic/NAS-DEPLOY.md)
