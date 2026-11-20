@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pipenv
+        run: pip install pipenv
+      - name: Install dependencies (project-local venv)
+        env:
+          PIPENV_VENV_IN_PROJECT: "1"
+        run: pipenv install --dev --deploy
+      - name: Lint
+        run: pipenv run ruff check .
+      - name: Tests
+        run: pipenv run pytest -q
+      - name: Personal-information scan
+        run: pipenv run python scripts/security_scan.py .
+      - name: Build demo library
+        run: pipenv run python scripts/seed_demo.py --root /tmp/demo-media
