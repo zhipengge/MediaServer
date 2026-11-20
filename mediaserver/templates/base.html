@@ -16,7 +16,7 @@
     <span class="brand-version">v{{ server.version }}</span>
   </a>
   <nav class="nav">
-    <a href="{{ url_for('web.library_page') }}?kind=audio">音乐</a>
+    <a href="{{ url_for('web.music_page') }}">音乐</a>
     <a href="{{ url_for('web.library_page') }}?kind=video">视频</a>
     <a href="{{ url_for('web.library_page') }}?kind=image">图片</a>
     <a href="{{ url_for('web.library_page') }}?kind=doc">文档</a>
@@ -45,7 +45,14 @@
   <span class="muted">本地媒体服务器 · {{ counts.total }} 个文件</span>
 </footer>
 
+{% block player_bar %}
+{% if not server.auth or session.get('auth') is true %}
+{% include "_player_bar.html" %}
+{% endif %}
+{% endblock %}
+
 <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/player-core.js') }}" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

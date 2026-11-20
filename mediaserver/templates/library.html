@@ -7,7 +7,7 @@
   <div class="tabs">
     <a class="tab {% if not kind %}active{% endif %}" href="{{ url_for('web.library_page') }}">全部</a>
     {% for key, label in kinds.items() %}
-    <a class="tab {% if kind == key %}active{% endif %}" href="{{ url_for('web.library_page') }}?kind={{ key }}">{{ label }}</a>
+    <a class="tab {% if kind == key %}active{% endif %}" href="{% if key == 'audio' %}{{ url_for('web.music_page') }}{% else %}{{ url_for('web.library_page') }}?kind={{ key }}{% endif %}">{{ label }}</a>
     {% endfor %}
   </div>
   <form class="inline-form" action="{{ url_for('web.library_page') }}" method="get">

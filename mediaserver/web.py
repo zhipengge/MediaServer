@@ -25,6 +25,7 @@ bp = Blueprint("web", __name__)
 
 KIND_LABELS = {"audio": "音乐", "video": "视频", "image": "图片", "doc": "文档"}
 PER_PAGE = 36
+MUSIC_TABS = ("songs", "albums", "artists", "favorites", "recent")
 
 
 def svc():
@@ -81,6 +82,10 @@ def library_page():
     kind = request.args.get("kind") or None
     if kind not in (None, "audio", "video", "image", "doc"):
         kind = None
+    if kind == "audio":
+        target = url_for("web.music_page")
+        extra = {key: value for key, value in request.args.items() if key != "kind"}
+        return redirect(url_for("web.music_page", **extra) if extra else target)
     artist = (request.args.get("artist") or "").strip() or None
     album = (request.args.get("album") or "").strip() or None
     total = s.db.count_items(kind=kind, q=q, artist=artist, album=album)
@@ -102,6 +107,58 @@ def library_page():
         pages=pages,
         total=total,
         facets=facets,
+    )
+
+
+@bp.get("/music")
+def music_page():
+    s = svc()
+    base = s.config.public_base(request.host)
+    tab = request.args.get("tab", "songs")
+    if tab not in MUSIC_TABS:
+        tab = "songs"
+    q = (request.args.get("q") or "").strip()
+    album = (request.args.get("album") or "").strip() or None
+    artist = (request.args.get("artist") or "").strip() or None
+    songs: list[dict] = []
+    albums: list[dict] = []
+    artists: list[dict] = []
+
+    if tab == "albums":
+        albums = [
+            {"name": row["album"], "artist": row["artist"], "count": row["n"],
+             "cover": f"/api/v1/cover/{row['cover_id']}" if row["cover_id"] else None}
+            for row in s.db.albums()
+        ]
+    elif tab == "artists":
+        artists = [
+            {"name": row["artist"], "count": row["n"], "albums": row["albums"],
+             "cover": f"/api/v1/cover/{row['cover_id']}" if row["cover_id"] else None}
+            for row in s.db.artists()
+        ]
+    else:
+        if tab == "favorites":
+            rows = s.db.favorite_rows(limit=300)
+        elif tab == "recent":
+            rows = s.db.recent_progress(limit=60, kind="audio")
+        else:
+            rows = s.db.list_items(kind="audio", q=q, album=album, artist=artist,
+                                   sort="name", limit=300)
+        songs = [s.library.item_payload(row, base) for row in rows]
+
+    favorite_ids = sorted(s.db.favorite_ids())
+    return render_template(
+        "music.html",
+        tab=tab,
+        songs=songs,
+        albums=albums,
+        artists=artists,
+        q=q,
+        album=album,
+        artist=artist,
+        favorite_ids=favorite_ids,
+        playlists=[dict(entry) for entry in s.db.list_playlists()],
+        counts=s.db.counts(),
     )
 
 

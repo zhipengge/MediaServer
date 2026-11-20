@@ -17,6 +17,9 @@ and the project adheres to [Semantic Versioning](https://semver.org/).
   job progress, segment serving and cache eviction.
 - QR connection page (`/connect`) with web URL, manifest URL, and 120-second
   single-use scan-to-login links.
+- Music hub: songs / albums / artists / favorites / recently played, a global
+  bottom player with queue, play modes, volume, Media Session and keyboard
+  shortcuts, plus favorites and album/artist aggregation APIs.
 - Metadata probing via mutagen, ffprobe and a pure-Python MP4 fallback.
 - Cover extraction, thumbnails and lyrics parsing (sidecar `.lrc` and embedded).
 - Share uploads (multipart) and same-origin URL shares with the `muYunShared/1` format.

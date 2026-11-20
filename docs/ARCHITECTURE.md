@@ -21,6 +21,16 @@ mediaserver/
 └── static/          CSS / 原生 JS / hls.js
 ```
 
+## 音乐播放（player-core）
+
+`static/js/player-core.js` 拥有唯一的 `<audio>` 与队列：
+
+- 队列与播放模式存 `localStorage`，跨页面刷新恢复（音频本身会随页面卸载停止，恢复后为暂停态）；
+- 模式：顺序 / 列表循环 / 单曲 / 随机；进度每 10 秒写回播放进度；
+- Media Session 提供锁屏、耳机键控制；快捷键：空格、←/→ 5 秒、Shift+←/→ 切歌；
+- 音乐页（`/music`）由服务端渲染，播放/收藏由 `music.js` 调用 `MSPlayer`；
+- `/listen/<id>` 保留独立的大播放页，使用自己的队列实现，因此不渲染全局播放条。
+
 ## 请求流
 
 ```text

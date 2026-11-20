@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}音乐{% endblock %}
+{% block content %}
+<section class="music-head">
+  <div>
+    <h1>音乐</h1>
+    <p class="muted">
+      {% if tab == 'albums' %}{{ albums|length }} 张专辑
+      {% elif tab == 'artists' %}{{ artists|length }} 位歌手
+      {% else %}{{ counts.audio or 0 }} 首曲目{% endif %}
+    </p>
+  </div>
+  <form class="music-search" action="{{ url_for('web.music_page') }}" method="get">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    {% if album %}<input type="hidden" name="album" value="{{ album }}">{% endif %}
+    {% if artist %}<input type="hidden" name="artist" value="{{ artist }}">{% endif %}
+    <input type="search" name="q" value="{{ q }}" placeholder="搜索歌名、歌手、专辑…" aria-label="搜索音乐">
+    <button class="btn" type="submit">搜索</button>
+  </form>
+</section>
+
+<nav class="tabs music-tabs">
+  <a class="tab {% if tab == 'songs' %}active{% endif %}" href="{{ url_for('web.music_page') }}?tab=songs">歌曲</a>
+  <a class="tab {% if tab == 'albums' %}active{% endif %}" href="{{ url_for('web.music_page') }}?tab=albums">专辑</a>
+  <a class="tab {% if tab == 'artists' %}active{% endif %}" href="{{ url_for('web.music_page') }}?tab=artists">歌手</a>
+  <a class="tab {% if tab == 'favorites' %}active{% endif %}" href="{{ url_for('web.music_page') }}?tab=favorites">收藏</a>
+  <a class="tab {% if tab == 'recent' %}active{% endif %}" href="{{ url_for('web.music_page') }}?tab=recent">最近播放</a>
+</nav>
+
+{% if q or album or artist %}
+<p class="music-filter muted">
+  {% if q %}搜索“{{ q }}”{% endif %}
+  {% if album %}专辑：{{ album }}{% endif %}
+  {% if artist %}歌手：{{ artist }}{% endif %}
+  · <a href="{{ url_for('web.music_page') }}?tab={{ tab }}">清除</a>
+</p>
+{% endif %}
+
+{% if tab in ('songs', 'favorites', 'recent') %}
+  {% if songs %}
+  <div class="music-toolbar">
+    <button type="button" class="btn" id="play-all">▶ 播放全部</button>
+    <span class="muted">{{ songs|length }} 首{% if tab == 'favorites' %}已收藏{% endif %}</span>
+  </div>
+  <table class="track-table">
+    <thead>
+      <tr><th class="col-play"></th><th>标题</th><th>歌手</th><th>专辑</th><th class="col-time">时长</th><th class="col-fav"></th></tr>
+    </thead>
+    <tbody>
+      {% for item in songs %}
+      <tr data-item="{{ item.id }}">
+        <td class="col-play"><button type="button" class="track-play" data-index="{{ loop.index0 }}" aria-label="播放 {{ item.title }}">▶</button></td>
+        <td class="col-title"><a href="{{ url_for('web.listen', item=item.id) }}">{{ item.title }}</a></td>
+        <td class="col-artist">{% if item.artist %}<a href="{{ url_for('web.music_page') }}?tab=songs&amp;artist={{ item.artist|urlencode }}">{{ item.artist }}</a>{% endif %}</td>
+        <td class="col-album">{% if item.album %}<a href="{{ url_for('web.music_page') }}?tab=songs&amp;album={{ item.album|urlencode }}">{{ item.album }}</a>{% endif %}</td>
+        <td class="col-time">{{ item.duration|fmt_duration }}</td>
+        <td class="col-fav">
+          <button type="button" class="fav-btn {% if item.id in favorite_ids %}faved{% endif %}"
+                  data-id="{{ item.id }}" data-fav="{{ 1 if item.id in favorite_ids else 0 }}"
+                  aria-label="收藏 {{ item.title }}">♥</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <script type="application/json" id="music-data">{{ {"songs": songs} | tojson }}</script>
+  {% else %}
+  <div class="empty">
+    {% if tab == 'favorites' %}还没有收藏。在播放条或歌曲列表点 ♥。{% elif tab == 'recent' %}还没有播放记录。{% else %}没有找到曲目。{% endif %}
+  </div>
+  {% endif %}
+
+{% elif tab == 'albums' %}
+  {% if albums %}
+  <div class="album-grid">
+    {% for album in albums %}
+    <a class="album-card" href="{{ url_for('web.music_page') }}?tab=songs&amp;album={{ album.name|urlencode }}">
+      <div class="album-art">
+        {% if album.cover %}<img src="{{ album.cover }}" alt="" loading="lazy">{% else %}<div class="poster-fallback">♫</div>{% endif %}
+      </div>
+      <div class="album-name">{{ album.name }}</div>
+      <div class="album-sub">{{ album.artist }}{% if album.count %} · {{ album.count }} 首{% endif %}</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">还没有带专辑标签的曲目。</div>
+  {% endif %}
+
+{% else %}
+  {% if artists %}
+  <div class="artist-grid">
+    {% for artist in artists %}
+    <a class="artist-card" href="{{ url_for('web.music_page') }}?tab=songs&amp;artist={{ artist.name|urlencode }}">
+      <div class="artist-art">
+        {% if artist.cover %}<img src="{{ artist.cover }}" alt="" loading="lazy">{% else %}<div class="poster-fallback">♪</div>{% endif %}
+      </div>
+      <div class="artist-name">{{ artist.name }}</div>
+      <div class="artist-sub">{{ artist.count }} 首 · {{ artist.albums }} 张专辑</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">还没有歌手标签。</div>
+  {% endif %}
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/music.js') }}" defer></script>
+{% endblock %}

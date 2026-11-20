@@ -1,0 +1,29 @@
+<div id="ms-player" class="player-bar" hidden aria-label="全局播放器">
+  <audio id="ms-audio" preload="metadata"></audio>
+  <div class="pb-track">
+    <img id="pb-cover" class="pb-cover" alt="" hidden>
+    <div class="pb-text">
+      <a id="pb-title" class="pb-title" href="#"></a>
+      <span id="pb-artist" class="pb-artist"></span>
+    </div>
+  </div>
+
+  <div class="pb-controls">
+    <button id="pb-prev" class="pb-btn" type="button" title="上一首">⏮</button>
+    <button id="pb-play" class="pb-btn pb-play" type="button" title="播放 / 暂停">▶</button>
+    <button id="pb-next" class="pb-btn" type="button" title="下一首">⏭</button>
+    <button id="pb-mode" class="pb-btn pb-mode" type="button" title="顺序播放">➡</button>
+  </div>
+
+  <div class="pb-timeline">
+    <span id="pb-cur">0:00</span>
+    <input id="pb-seek" type="range" min="0" max="1000" value="0" aria-label="播放进度">
+    <span id="pb-dur">0:00</span>
+  </div>
+
+  <div class="pb-extra">
+    <button id="pb-fav" class="pb-btn" type="button" title="收藏">♡</button>
+    <input id="pb-vol" type="range" min="0" max="100" value="80" title="音量" aria-label="音量">
+    <a id="pb-expand" class="pb-btn" href="#" title="打开播放页">⤢</a>
+  </div>
+</div>

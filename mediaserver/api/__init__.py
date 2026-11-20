@@ -425,6 +425,60 @@ def upload():
                "url": media_url(rel), "kind": kind}, 201)
 
 
+# ── extension: favorites ───────────────────────────────────────────
+@bp.get("/favorites")
+def favorites():
+    s = services()
+    try:
+        limit = max(1, min(500, int(request.args.get("limit", 200))))
+    except ValueError:
+        limit = 200
+    base = request_base()
+    return ok({"items": [s.library.item_payload(row, base)
+                         for row in s.db.favorite_rows(limit=limit)]})
+
+
+@bp.put("/favorites/<item>")
+def favorite_add(item):
+    s = services()
+    if not ITEM_ID_RE.fullmatch(item or "") or s.db.get(item) is None:
+        return fail("item id 无效", 400)
+    s.db.set_favorite(item, True)
+    return ok({"itemId": item, "favorite": True})
+
+
+@bp.delete("/favorites/<item>")
+def favorite_remove(item):
+    s = services()
+    if not ITEM_ID_RE.fullmatch(item or ""):
+        return fail("item id 格式不对", 400)
+    s.db.set_favorite(item, False)
+    return ok({"itemId": item, "favorite": False})
+
+
+# ── extension: albums / artists ────────────────────────────────────
+@bp.get("/albums")
+def albums():
+    s = services()
+    rows = s.db.albums(limit=max(1, min(1000, int(request.args.get("limit", 300)))))
+    return ok({"albums": [
+        {"name": row["album"], "artist": row["artist"], "count": row["n"],
+         "cover": f"/api/v1/cover/{row['cover_id']}" if row["cover_id"] else None}
+        for row in rows
+    ]})
+
+
+@bp.get("/artists")
+def artists():
+    s = services()
+    rows = s.db.artists(limit=max(1, min(1000, int(request.args.get("limit", 300)))))
+    return ok({"artists": [
+        {"name": row["artist"], "count": row["n"], "albums": row["albums"],
+         "cover": f"/api/v1/cover/{row['cover_id']}" if row["cover_id"] else None}
+        for row in rows
+    ]})
+
+
 # ── extension: progress & playlists ────────────────────────────────
 @bp.post("/progress")
 def save_progress():

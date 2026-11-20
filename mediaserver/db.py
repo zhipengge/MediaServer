@@ -84,6 +84,11 @@ CREATE TABLE IF NOT EXISTS shares (
 );
 CREATE INDEX IF NOT EXISTS shares_time ON shares(shared_at DESC);
 
+CREATE TABLE IF NOT EXISTS favorites (
+    item_id     TEXT PRIMARY KEY,
+    created_at  REAL NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS scan_state (
     k TEXT PRIMARY KEY,
     v TEXT
@@ -331,6 +336,40 @@ class Database:
 
     def list_shares(self, limit: int = 200) -> list[sqlite3.Row]:
         return self.query("SELECT * FROM shares ORDER BY shared_at DESC LIMIT ?", (limit,))
+
+    # ── favorites ───────────────────────────────────────────────────
+    def set_favorite(self, item_id_value: str, favorite: bool) -> None:
+        if favorite:
+            self.execute(
+                "INSERT INTO favorites (item_id, created_at) VALUES (?, ?) "
+                "ON CONFLICT(item_id) DO NOTHING", (item_id_value, time.time()))
+        else:
+            self.execute("DELETE FROM favorites WHERE item_id = ?", (item_id_value,))
+
+    def favorite_ids(self) -> set[str]:
+        return {row["item_id"] for row in self.query("SELECT item_id FROM favorites")}
+
+    def favorite_rows(self, limit: int = 200, offset: int = 0) -> list[sqlite3.Row]:
+        return self.query(
+            "SELECT i.* FROM favorites f JOIN items i ON i.id = f.item_id "
+            "ORDER BY f.created_at DESC LIMIT ? OFFSET ?", (limit, offset))
+
+    # ── album / artist aggregation ──────────────────────────────────
+    def albums(self, limit: int = 300) -> list[sqlite3.Row]:
+        return self.query(
+            "SELECT album, COALESCE(artist, '') AS artist, COUNT(*) AS n, "
+            "MAX(CASE WHEN has_cover = 1 THEN id END) AS cover_id, "
+            "MAX(mtime) AS cover_mtime "
+            "FROM items WHERE kind = 'audio' AND COALESCE(album, '') != '' "
+            "GROUP BY album ORDER BY album COLLATE NOCASE LIMIT ?", (limit,))
+
+    def artists(self, limit: int = 300) -> list[sqlite3.Row]:
+        return self.query(
+            "SELECT artist, COUNT(*) AS n, COUNT(DISTINCT album) AS albums, "
+            "MAX(CASE WHEN has_cover = 1 THEN id END) AS cover_id, "
+            "MAX(mtime) AS cover_mtime "
+            "FROM items WHERE kind = 'audio' AND COALESCE(artist, '') != '' "
+            "GROUP BY artist ORDER BY artist COLLATE NOCASE LIMIT ?", (limit,))
 
     # ── scan state ──────────────────────────────────────────────────
     def state_get(self, key: str, default: Any = None) -> Any:
