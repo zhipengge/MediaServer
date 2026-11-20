@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}文件管理{% endblock %}
+{% block content %}
+<section class="library-head">
+  <h1>文件管理</h1>
+  <p class="muted">上传到 <code>uploads/</code>，自动按类型归档（音乐 / 视频 / 图片 / 文档）。上传文件夹会保留目录结构。</p>
+</section>
+
+<section class="upload-panel drop-zone" id="drop-zone">
+  <h2>上传</h2>
+  <p class="hint muted">把文件或文件夹拖到这里，或者：</p>
+  <div class="player-actions">
+    <button type="button" class="btn" id="pick-files">选择文件</button>
+    <button type="button" class="btn" id="pick-folder">选择文件夹</button>
+    <input type="file" id="file-input" multiple hidden>
+    <input type="file" id="folder-input" webkitdirectory directory multiple hidden>
+  </div>
+  <p class="hint muted">单文件上限 {{ upload_max_mb }} MB；同名文件会自动加序号，不覆盖。</p>
+  <progress id="upload-progress" max="100" value="0" hidden></progress>
+  <p class="muted" id="upload-status"></p>
+  <ul class="upload-errors" id="upload-errors"></ul>
+</section>
+
+<section>
+  <div class="music-toolbar">
+    <div class="tabs">
+      <a class="tab {% if not kind %}active{% endif %}" href="{{ url_for('web.files_page') }}">全部 ({{ counts.total }})</a>
+      <a class="tab {% if kind == 'audio' %}active{% endif %}" href="{{ url_for('web.files_page') }}?kind=audio">音乐 ({{ counts.audio }})</a>
+      <a class="tab {% if kind == 'video' %}active{% endif %}" href="{{ url_for('web.files_page') }}?kind=video">视频 ({{ counts.video }})</a>
+      <a class="tab {% if kind == 'image' %}active{% endif %}" href="{{ url_for('web.files_page') }}?kind=image">图片 ({{ counts.image }})</a>
+      <a class="tab {% if kind == 'doc' %}active{% endif %}" href="{{ url_for('web.files_page') }}?kind=doc">文档 ({{ counts.doc }})</a>
+    </div>
+    <form class="inline-form" action="{{ url_for('web.files_page') }}" method="get">
+      {% if kind %}<input type="hidden" name="kind" value="{{ kind }}">{% endif %}
+      <input type="search" name="q" value="{{ q }}" placeholder="按路径筛选…" aria-label="筛选文件">
+      <button class="btn btn-ghost" type="submit">筛选</button>
+    </form>
+  </div>
+
+  {% if files %}
+  <table class="track-table files-table">
+    <thead>
+      <tr><th>名称</th><th>目录</th><th>类型</th><th class="col-time">大小</th><th class="col-time">上传时间</th><th class="col-fav">操作</th></tr>
+    </thead>
+    <tbody>
+      {% for file in files %}
+      <tr data-rel="{{ file.rel }}">
+        <td class="col-title"><a href="{{ file.url }}" target="_blank" rel="noopener">{{ file.name }}</a></td>
+        <td class="col-album"><code>{{ file.dir }}</code></td>
+        <td>{{ {'audio':'音乐','video':'视频','image':'图片','doc':'文档'}.get(file.kind, file.kind) }}</td>
+        <td class="col-time">{{ file.size|fmt_size }}</td>
+        <td class="col-time">{{ file.mtime|fmt_time }}</td>
+        <td class="col-fav">
+          <a class="btn btn-ghost" href="{{ file.download }}" download>下载</a>
+          <button type="button" class="btn btn-ghost file-delete" data-rel="{{ file.rel }}">删除</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty">
+    {% if q %}没有匹配的文件。{% else %}还没有上传文件。拖一个文件夹进来试试。{% endif %}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/files.js') }}?v={{ server.version }}" defer></script>
+{% endblock %}

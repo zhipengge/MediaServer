@@ -4,6 +4,17 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-11-21
+
+### Added
+
+- File manager at `/files`: upload files or entire folders (directory structure
+  preserved), filter by kind, download and delete uploaded files.
+- `POST /api/v1/upload` accepts `relativePath`; `GET /api/v1/files` and
+  `DELETE /api/v1/files/<rel>` added.
+- Upload-triggered scans now queue a follow-up scan instead of being dropped
+  when one is already running.
+
 ## [1.3.3] - 2026-11-20
 
 ### Added

@@ -21,6 +21,14 @@
 
 ## 契约接口（NAS-DEPLOY §6）
 
+### 文件夹上传
+
+`POST /api/v1/upload` 的 `relativePath` 字段（如 `Album/CD1/01.flac`）决定归档目录：
+
+- 目录部分逐段清洗，拒绝 `..`、绝对路径、隐藏目录、控制字符、超过 16 层；
+- 最终路径必须仍在 `DATA/uploads/<kind>` 内；
+- 保留目录结构，同名文件自动加 `-1` 后缀，不覆盖。
+
 ### `GET /api/v1/status`
 
 ```json
@@ -173,7 +181,9 @@
 | GET | `/api/v1/lyrics/<id>` | 原始 LRC 文本；`?format=json` 返回解析后的时间轴 |
 | GET | `/api/v1/download?item=<id>` | 附件下载（`Content-Disposition`） |
 | POST | `/api/v1/rescan` | 触发一次后台扫描，返回 `202` |
-| POST | `/api/v1/upload` | multipart `file`，落 `DATA_DIR/uploads/`，返回 `201` |
+| POST | `/api/v1/upload` | multipart `file` + 可选 `relativePath`（文件夹上传保留目录），落 `DATA_DIR/uploads/`，返回 `201` |
+| GET | `/api/v1/files?kind=&q=` | 已上传文件列表与计数 |
+| DELETE | `/api/v1/files/<rel>` | 删除 `uploads/` 下的文件 |
 | GET | `/api/v1/albums` | 专辑聚合（名称、歌手、曲目数、封面） |
 | GET | `/api/v1/artists` | 歌手聚合（id、曲目数、专辑数、封面） |
 | GET | `/api/v1/favorites` | 收藏列表 |
@@ -240,6 +250,7 @@ curl -H "X-API-Token: $MEDIA_TOKEN" http://127.0.0.1:8080/api/v1/items
 | `/library?kind=&q=&sort=&page=` | 媒体库（`kind=audio` 会跳到 `/music`） |
 | `/music?tab=songs\|albums\|artists\|favorites\|recent\|top` | 音乐中心 |
 | `/artist/<id>` | 歌手详情（头像、专辑、全部曲目） |
+| `/files` | 文件管理（上传文件/文件夹、列表、下载、删除） |
 | `/listen/<id>` | 音频播放器（队列、歌词同步） |
 | `/watch/<id>` | 视频播放（直链或 HLS） |
 | `/view/<id>` | 图片查看 |

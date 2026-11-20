@@ -37,6 +37,7 @@ class LibraryManager:
         self._scan_lock = threading.Lock()
         self._scan_thread: threading.Thread | None = None
         self._stop = threading.Event()
+        self._rescan_requested = threading.Event()
         self._thumb_locks: dict[str, threading.Lock] = {}
         self._thumb_locks_guard = threading.Lock()
 
@@ -68,6 +69,9 @@ class LibraryManager:
     def scan(self) -> dict:
         """Incrementally index the library. Safe to call concurrently."""
         if not self._scan_lock.acquire(blocking=False):
+            # A scan is in flight; make sure another one follows so uploads
+            # arriving mid-scan are picked up instead of waiting for the timer.
+            self._rescan_requested.set()
             return {"running": True, "skipped": True}
         started = time.time()
         stats = {"scanned": 0, "added": 0, "updated": 0, "removed": 0, "errors": 0}
@@ -148,6 +152,9 @@ class LibraryManager:
             return stats
         finally:
             self._scan_lock.release()
+            if self._rescan_requested.is_set():
+                self._rescan_requested.clear()
+                threading.Thread(target=self.scan, name="media-rescan", daemon=True).start()
 
     def start(self) -> None:
         if self.config.scan_on_start:
@@ -355,6 +362,55 @@ class LibraryManager:
         except Exception:
             meta = {}
         return meta.get("embedded_lyrics_text") or ""
+
+    # ── uploaded files ─────────────────────────────────────────────
+    def list_uploads(self, kind: str | None = None, q: str = "",
+                     limit: int = 1000) -> list[dict]:
+        root = self.config.uploads_dir
+        if not root.is_dir():
+            return []
+        needle = (q or "").strip().casefold()
+        rows: list[dict] = []
+        for path in root.rglob("*"):
+            if path.is_symlink() or not path.is_file():
+                continue
+            file_kind = kind_for(path)
+            if file_kind is None or (kind and file_kind != kind):
+                continue
+            rel = "uploads/" + path.relative_to(root).as_posix()
+            if needle and needle not in rel.casefold():
+                continue
+            try:
+                stat = path.stat()
+            except OSError:
+                continue
+            rows.append({
+                "rel": rel,
+                "name": path.name,
+                "dir": path.parent.relative_to(root).as_posix(),
+                "kind": file_kind,
+                "size": stat.st_size,
+                "mtime": int(stat.st_mtime),
+                "url": rel_to_url_path(rel),
+                "download": rel_to_url_path(rel),
+            })
+        rows.sort(key=lambda row: row["mtime"], reverse=True)
+        return rows[:limit]
+
+    def upload_counts(self) -> dict[str, int]:
+        counts = {"audio": 0, "video": 0, "image": 0, "doc": 0, "total": 0}
+        root = self.config.uploads_dir
+        if not root.is_dir():
+            return counts
+        for path in root.rglob("*"):
+            if path.is_symlink() or not path.is_file():
+                continue
+            file_kind = kind_for(path)
+            if file_kind is None:
+                continue
+            counts[file_kind] += 1
+            counts["total"] += 1
+        return counts
 
     # ── cache maintenance ──────────────────────────────────────────
     @staticmethod

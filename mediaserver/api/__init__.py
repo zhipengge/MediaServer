@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import posixpath
 import re
 import secrets
 import time
@@ -22,6 +23,7 @@ from ..util import (
     media_url,
     resolve_rel,
     safe_rel,
+    safe_upload_dir,
     sanitize_filename,
     valid_host,
 )
@@ -402,7 +404,18 @@ def upload():
     if kind is None:
         return fail(f"不支持的文件类型:{suffix or '(无后缀)'}", 415)
     folder = {"audio": "music", "video": "videos", "image": "images", "doc": "docs"}[kind]
-    destination_dir = s.config.uploads_dir / folder
+    relative = request.form.get("relativePath", "")
+    if len(relative) > 1024:
+        return fail("relativePath 过长", 400)
+    safe_dir = safe_upload_dir(posixpath.dirname(relative))
+    if safe_dir is None:
+        return fail("relativePath 不合法", 400)
+    root = (s.config.uploads_dir / folder).resolve()
+    destination_dir = (root / safe_dir).resolve()
+    try:
+        destination_dir.relative_to(root)
+    except ValueError:
+        return fail("relativePath 越界", 400)
     destination_dir.mkdir(parents=True, exist_ok=True)
     stem = Path(original).stem
     candidate = destination_dir / original
@@ -421,9 +434,10 @@ def upload():
         return fail(f"文件超过上传上限 {s.config.upload_max_mb} MB", 413)
     os.replace(temp, candidate)
     threading.Thread(target=s.library.scan, name="upload-scan", daemon=True).start()
-    rel = f"uploads/{folder}/{candidate.name}"
+    rel = "/".join(part for part in ("uploads", folder, safe_dir, candidate.name) if part)
     return ok({"uploaded": True, "rel": rel, "size": size,
-               "url": media_url(rel), "kind": kind}, 201)
+               "url": media_url(rel), "kind": kind,
+               "folder": safe_dir}, 201)
 
 
 # ── extension: favorites ───────────────────────────────────────────
@@ -479,6 +493,43 @@ def artists():
          "cover": f"/api/v1/cover/{row['cover_id']}" if row["cover_id"] else None}
         for row in rows
     ]})
+
+
+@bp.get("/files")
+def files():
+    s = services()
+    kind = request.args.get("kind")
+    if kind not in (None, "", "audio", "video", "image", "doc"):
+        return fail("未知的 kind", 400)
+    q = (request.args.get("q") or "").strip()
+    try:
+        limit = max(1, min(5000, int(request.args.get("limit", 1000))))
+    except ValueError:
+        limit = 1000
+    return ok({"files": s.library.list_uploads(kind or None, q, limit),
+               "counts": s.library.upload_counts()})
+
+
+@bp.delete("/files/<path:rel>")
+def delete_file(rel):
+    s = services()
+    if not rel.startswith("uploads/"):
+        return fail("只能删除 uploads/ 下的文件", 400)
+    path = resolve_rel(s.config.mounts, rel)
+    if path is None or not path.is_file():
+        return fail("not found", 404)
+    try:
+        path.resolve().relative_to(s.config.uploads_dir.resolve())
+    except ValueError:
+        return fail("越界", 400)
+    try:
+        path.unlink()
+    except OSError as exc:
+        return fail(f"删除失败:{exc}", 500)
+    import threading
+
+    threading.Thread(target=s.library.scan, name="delete-scan", daemon=True).start()
+    return ok({"deleted": True, "rel": rel})
 
 
 # ── extension: progress & playlists ────────────────────────────────
