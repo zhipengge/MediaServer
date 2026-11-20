@@ -42,8 +42,24 @@ git clone https://github.com/zhipengge/MediaServer.git
 cd MediaServer
 make setup                 # PIPENV_VENV_IN_PROJECT=1 pipenv install --dev
 make seed                  # 生成合成演示媒体（可选）
-make run                   # http://127.0.0.1:8080
+./start.sh start           # 后台启动（LAN 实例 + 公网实例 + 隧道）
+./start.sh status
 ```
+
+进程控制：
+
+```bash
+./start.sh start [lan|public|tunnel|all]     # 缺省 all
+./start.sh stop  [lan|public|tunnel|all]
+./start.sh restart [lan|public|tunnel|all]
+./start.sh status
+```
+
+- `lan`：`0.0.0.0:8080`，NAS-DEPLOY 契约，无鉴权（仅家庭网络）；
+- `public`：`127.0.0.1:8081`，token 模式，经 VPS 隧道对外；
+- `tunnel`：SSH 反向隧道（读 `~/.config/mediaserver/tunnel.env`，不存在则跳过）。
+
+状态文件在 `~/.config/mediaserver/{run,logs}`，环境文件 `{lan,public,tunnel}.env` 均 0600。
 
 `make setup` 把虚拟环境固定建在项目内的 `.venv/`，不会污染系统 Python。
 也可以手工执行：

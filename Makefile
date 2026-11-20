@@ -7,7 +7,7 @@ PY := $(PIPENV) run python
 export PIPENV_VENV_IN_PROJECT := 1
 export PIPENV_IGNORE_VIRTUALENVS := 1
 
-.PHONY: setup run serve test lint fmt selfcheck security seed docker clean
+.PHONY: setup run serve start stop restart status test lint fmt selfcheck security seed docker clean
 
 setup:            ## create .venv and install runtime + dev packages
 	$(PIPENV) install --dev
@@ -17,6 +17,18 @@ run:              ## development server on 127.0.0.1:8080
 
 serve:            ## production WSGI server (waitress)
 	$(PY) -m mediaserver
+
+start:            ## background: LAN + public + tunnel
+	./start.sh start
+
+stop:
+	./start.sh stop
+
+restart:
+	./start.sh restart
+
+status:
+	./start.sh status
 
 test:
 	$(PIPENV) run pytest -q
