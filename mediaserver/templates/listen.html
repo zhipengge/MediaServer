@@ -40,5 +40,5 @@
 </div>
 
 <script type="application/json" id="player-data">{{ {"item": item, "queue": queue, "lyrics": lyrics, "position": position} | tojson }}</script>
-<script src="{{ url_for('static', filename='js/player.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/player.js') }}?v={{ server.version }}" defer></script>
 {% endblock %}

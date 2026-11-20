@@ -25,7 +25,7 @@
 {% endblock %}
 {% block scripts %}
 {% if page_url %}
-<script src="{{ url_for('static', filename='vendor/qrcode.min.js') }}" defer></script>
-<script src="{{ url_for('static', filename='js/connect.js') }}" defer></script>
+<script src="{{ url_for('static', filename='vendor/qrcode.min.js') }}?v={{ server.version }}" defer></script>
+<script src="{{ url_for('static', filename='js/connect.js') }}?v={{ server.version }}" defer></script>
 {% endif %}
 {% endblock %}

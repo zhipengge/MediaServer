@@ -36,6 +36,6 @@
 </div>
 
 <script type="application/json" id="watch-data">{{ {"item": item, "direct": direct, "hlsEnabled": hls_enabled, "position": position} | tojson }}</script>
-<script src="{{ url_for('static', filename='vendor/hls.min.js') }}" defer></script>
-<script src="{{ url_for('static', filename='js/watch.js') }}" defer></script>
+<script src="{{ url_for('static', filename='vendor/hls.min.js') }}?v={{ server.version }}" defer></script>
+<script src="{{ url_for('static', filename='js/watch.js') }}?v={{ server.version }}" defer></script>
 {% endblock %}

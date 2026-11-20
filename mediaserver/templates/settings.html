@@ -60,5 +60,5 @@
 </div>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/settings.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/settings.js') }}?v={{ server.version }}" defer></script>
 {% endblock %}

@@ -34,6 +34,6 @@
 
 <p class="muted">局域网地址与公网地址各自生成一次二维码即可：在手机上打开哪个入口，就在那个入口的「连接」页扫码。</p>
 
-<script src="{{ url_for('static', filename='vendor/qrcode.min.js') }}" defer></script>
-<script src="{{ url_for('static', filename='js/connect.js') }}" defer></script>
+<script src="{{ url_for('static', filename='vendor/qrcode.min.js') }}?v={{ server.version }}" defer></script>
+<script src="{{ url_for('static', filename='js/connect.js') }}?v={{ server.version }}" defer></script>
 {% endblock %}

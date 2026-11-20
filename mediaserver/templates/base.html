@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark light">
   <title>{% block title %}{{ server.name }}{% endblock %} · {{ server.name }}</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}?v={{ server.version }}">
   <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
 </head>
 <body>
@@ -51,8 +51,8 @@
 {% endif %}
 {% endblock %}
 
-<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
-<script src="{{ url_for('static', filename='js/player-core.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v={{ server.version }}" defer></script>
+<script src="{{ url_for('static', filename='js/player-core.js') }}?v={{ server.version }}" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

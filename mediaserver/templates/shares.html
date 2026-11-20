@@ -46,5 +46,5 @@
 </section>
 {% endblock %}
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/shares.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/shares.js') }}?v={{ server.version }}" defer></script>
 {% endblock %}

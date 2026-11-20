@@ -7,8 +7,12 @@
   if (!songs.length) return;
 
   function playFrom(index) {
-    if (!window.MSPlayer) return;
-    window.MSPlayer.setQueue(songs, index, true);
+    const player = window.MSPlayer;
+    if (!player) {
+      if (window.MS) window.MS.toast("播放器还没加载完，请刷新页面", true);
+      return;
+    }
+    player.setQueue(songs, index, true);
   }
 
   const playAll = document.getElementById("play-all");

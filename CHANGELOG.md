@@ -4,6 +4,14 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 2026-11-20
+
+### Fixed
+
+- Music page scripts now load after `player-core.js`; previously `MSPlayer` was
+  undefined when `music.js` bound its click handlers, so Play did nothing.
+- Static asset URLs carry the server version to avoid stale JS/CSS after upgrades.
+
 ## [1.3.0] - 2026-11-20
 
 ### Added
