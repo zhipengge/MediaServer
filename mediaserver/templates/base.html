@@ -25,8 +25,12 @@
     <a href="{{ url_for('web.connect') }}">连接</a>
     <a href="{{ url_for('web.settings_page') }}">设置</a>
   </nav>
-  <form class="search" action="{{ url_for('web.library_page') }}" method="get" role="search">
-    <input type="search" name="q" value="{{ q|default('') }}" placeholder="搜索标题、歌手、专辑…" aria-label="搜索">
+  <form class="search"
+        action="{% if request.endpoint == 'web.music_page' %}{{ url_for('web.music_page') }}{% else %}{{ url_for('web.library_page') }}{% endif %}"
+        method="get" role="search">
+    <input type="search" name="q" value="{{ q|default('') }}"
+           placeholder="{% if request.endpoint == 'web.music_page' %}搜索歌名、歌手、专辑…{% else %}搜索标题、歌手、专辑…{% endif %}"
+           aria-label="搜索">
     <button type="submit" class="btn btn-ghost">搜索</button>
   </form>
   {% if server.auth %}

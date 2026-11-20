@@ -10,13 +10,6 @@
       {% else %}{{ counts.audio or 0 }} 首曲目{% endif %}
     </p>
   </div>
-  <form class="music-search" action="{{ url_for('web.music_page') }}" method="get">
-    <input type="hidden" name="tab" value="{{ tab }}">
-    {% if album %}<input type="hidden" name="album" value="{{ album }}">{% endif %}
-    {% if artist %}<input type="hidden" name="artist" value="{{ artist }}">{% endif %}
-    <input type="search" name="q" value="{{ q }}" placeholder="搜索歌名、歌手、专辑…" aria-label="搜索音乐">
-    <button class="btn" type="submit">搜索</button>
-  </form>
 </section>
 
 <nav class="tabs music-tabs">

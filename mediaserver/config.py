@@ -65,7 +65,7 @@ class Config:
     doc_root: Path
     host: str = "0.0.0.0"
     port: int = 8080
-    version: str = "1.3.1"
+    version: str = "1.3.2"
     server_name: str = "mediaserver"
     auth_mode: str = "off"          # off | token
     auth_token: str = ""
@@ -183,7 +183,7 @@ class Config:
             doc_root=doc_root,
             host=host if host is not None else (_env("MEDIA_HOST", "HOST", default="0.0.0.0") or "0.0.0.0"),
             port=port if port is not None else _as_int(_env("MEDIA_PORT", "PORT"), 8080, lo=1, hi=65535),
-            version="1.3.1",
+            version="1.3.2",
             server_name=_env("MEDIA_SERVER_NAME", default="mediaserver") or "mediaserver",
             auth_mode=auth_mode,
             auth_token=token,

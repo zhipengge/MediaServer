@@ -4,6 +4,13 @@ All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.2] - 2026-11-20
+
+### Fixed
+
+- Music hub no longer renders a second search box; the top bar search is
+  context-aware (`/music` searches music, other pages search the whole library).
+
 ## [1.3.1] - 2026-11-20
 
 ### Fixed

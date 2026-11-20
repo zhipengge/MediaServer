@@ -32,6 +32,13 @@ def test_music_scripts_load_in_dependency_order(app, client, config):
         "music.js must run after player-core.js or MSPlayer is undefined"
 
 
+def test_music_page_has_exactly_one_search_box(app, client, config):
+    _seed(app, config)
+    body = client.get("/music").get_data(as_text=True)
+    assert body.count('type="search"') == 1
+    assert 'action="/music"' in body
+
+
 def test_audio_library_redirects_to_music(client):
     response = client.get("/library?kind=audio")
     assert response.status_code == 302
