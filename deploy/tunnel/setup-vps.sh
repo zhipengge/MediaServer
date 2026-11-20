@@ -2,6 +2,7 @@
 # Prepare the public VPS side of the reverse tunnel (Debian/Ubuntu).
 #
 #   sudo HTTPS_PORT=8443 ./setup-vps.sh media.example.com admin@example.com
+#   sudo HTTPS_PORT=8443 ./setup-vps.sh media.example.com -   # no ACME e-mail
 #
 # Port 443 is often occupied by an existing proxy (e.g. danted), so HTTPS_PORT is
 # configurable. Port 80 is used for the ACME HTTP-01 challenge and a redirect.
@@ -11,9 +12,13 @@ set -euo pipefail
 DOMAIN="${1:-}"
 ACME_EMAIL="${2:-}"
 HTTPS_PORT="${HTTPS_PORT:-443}"
-if [ -z "$DOMAIN" ] || [ -z "$ACME_EMAIL" ]; then
-    echo "用法: sudo HTTPS_PORT=8443 $0 <域名> <ACME 邮箱>" >&2
+if [ -z "$DOMAIN" ]; then
+    echo "用法: sudo HTTPS_PORT=8443 $0 <域名> <ACME 邮箱|->" >&2
     exit 2
+fi
+ACME_ARGS=(--register-unsafely-without-email)
+if [ -n "$ACME_EMAIL" ] && [ "$ACME_EMAIL" != "-" ]; then
+    ACME_ARGS=(-m "$ACME_EMAIL")
 fi
 if [ "$(id -u)" -ne 0 ]; then
     echo "请用 root 或 sudo 运行" >&2
@@ -88,7 +93,7 @@ systemctl reload nginx
 # ── certificate (webroot, works on any HTTPS port) ──────────────────
 if [ ! -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; then
     certbot certonly --webroot -w /var/www/certbot -d "$DOMAIN" \
-        --non-interactive --agree-tos -m "$ACME_EMAIL" --keep-until-expiring
+        --non-interactive --agree-tos "${ACME_ARGS[@]}" --keep-until-expiring
 fi
 
 # ── final vhost with TLS ────────────────────────────────────────────
