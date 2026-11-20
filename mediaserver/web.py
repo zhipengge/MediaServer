@@ -290,24 +290,6 @@ def read_doc(item):
                            is_text=bool(text))
 
 
-@bp.get("/files")
-def files_page():
-    s = svc()
-    kind = request.args.get("kind") or None
-    if kind not in (None, "audio", "video", "image", "doc"):
-        kind = None
-    q = (request.args.get("q") or "").strip()
-    files = s.library.list_uploads(kind, q, limit=2000)
-    return render_template(
-        "files.html",
-        files=files,
-        counts=s.library.upload_counts(),
-        kind=kind,
-        q=q,
-        upload_max_mb=s.config.upload_max_mb,
-    )
-
-
 @bp.get("/shares")
 def shares():
     s = svc()

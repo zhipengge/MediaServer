@@ -313,33 +313,6 @@ def same_origin_path(raw: str, request_host: str, mounts: dict[str, Path]) -> st
     return None
 
 
-def safe_upload_dir(relative: str, max_depth: int = 16) -> str | None:
-    """Sanitize the directory part of a folder upload.
-
-    ``relative`` is the path *without* the file name, e.g. ``Album/CD1``.
-    Returns "" for the upload root, a normalised posix path, or None when the
-    path escapes, is hidden, contains control characters, or is too deep.
-    """
-    raw = unquote(relative or "").replace("\\", "/").strip("/")
-    if not raw:
-        return ""
-    if len(raw) > 512 or _DANGEROUS.search(raw):
-        return None
-    parts: list[str] = []
-    for part in raw.split("/"):
-        if part in ("", "."):
-            continue
-        if part == ".." or part.startswith("."):
-            return None
-        cleaned = sanitize_filename(part, fallback="")
-        if not cleaned or cleaned in (".", ".."):
-            return None
-        parts.append(cleaned)
-        if len(parts) > max_depth:
-            return None
-    return "/".join(parts)
-
-
 def sanitize_filename(name: str, fallback: str = "upload") -> str:
     name = os.path.basename((name or "").replace("\\", "/")).strip()
     name = _CONTROL.sub("", name)
