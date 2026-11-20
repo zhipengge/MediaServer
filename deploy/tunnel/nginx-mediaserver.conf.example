@@ -1,0 +1,64 @@
+# /etc/nginx/sites-available/mediaserver
+# Replace media.example.com and the certificate paths. The upstream is the
+# reverse tunnel bound to 127.0.0.1 on the VPS.
+
+limit_req_zone $binary_remote_addr zone=mediaserver_login:10m rate=5r/m;
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name media.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name media.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/media.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/media.example.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+    add_header X-Content-Type-Options nosniff always;
+    add_header Referrer-Policy no-referrer always;
+    server_tokens off;
+
+    # Uploads and shares can be large; match MEDIA_UPLOAD_MAX_MB.
+    client_max_body_size 1g;
+    client_body_timeout 300s;
+
+    # Optional second factor at the proxy layer. Create the file with:
+    #   htpasswd -c /etc/nginx/mediaserver.htpasswd viewer
+    # auth_basic "MediaServer";
+    # auth_basic_user_file /etc/nginx/mediaserver.htpasswd;
+
+    location = /login {
+        limit_req zone=mediaserver_login burst=3 nodelay;
+        proxy_pass http://127.0.0.1:18080;
+        include /etc/nginx/mediaserver-proxy.conf;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:18080;
+        include /etc/nginx/mediaserver-proxy.conf;
+    }
+}
+
+# /etc/nginx/mediaserver-proxy.conf
+#   proxy_http_version 1.1;
+#   proxy_set_header Host $host;
+#   proxy_set_header X-Real-IP $remote_addr;
+#   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#   proxy_set_header X-Forwarded-Proto $scheme;
+#   proxy_set_header X-Forwarded-Host $host;
+#   proxy_buffering off;          # needed for Range / large media
+#   proxy_request_buffering off;  # stream uploads instead of spooling
+#   proxy_read_timeout 300s;
+#   proxy_send_timeout 300s;
+#   proxy_connect_timeout 10s;

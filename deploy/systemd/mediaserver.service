@@ -1,0 +1,33 @@
+[Unit]
+Description=MediaServer (music / video / images / documents)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mediaserver
+Group=mediaserver
+WorkingDirectory=/opt/mediaserver
+EnvironmentFile=/etc/mediaserver/env
+ExecStart=/opt/mediaserver/.venv/bin/python -m mediaserver
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+
+# Hardening: the service only needs to read the library and write its data dir.
+NoNewPrivileges=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/mediaserver
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=yes
+MemoryDenyWriteExecute=no
+UMask=0027
+
+[Install]
+WantedBy=multi-user.target

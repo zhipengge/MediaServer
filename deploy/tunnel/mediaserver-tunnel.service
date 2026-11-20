@@ -1,0 +1,43 @@
+# Runs on the NAS: keeps a reverse tunnel to the VPS.
+#
+#   /etc/mediaserver/tunnel.env:
+#     VPS_HOST=vps.example.com
+#     VPS_USER=tunnel
+#     VPS_PORT=22
+#     REMOTE_PORT=18080
+#     LOCAL_PORT=8080
+#     IDENTITY=/etc/mediaserver/tunnel_key
+#
+# The remote forward binds 127.0.0.1 on the VPS only, so nginx (not the
+# internet) is the sole entry point.
+[Unit]
+Description=MediaServer reverse SSH tunnel
+After=network-online.target mediaserver.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=mediaserver
+Group=mediaserver
+EnvironmentFile=/etc/mediaserver/tunnel.env
+ExecStart=/usr/bin/autossh -M 0 -N \
+    -o ExitOnForwardFailure=yes \
+    -o ServerAliveInterval=30 \
+    -o ServerAliveCountMax=3 \
+    -o StrictHostKeyChecking=yes \
+    -o UserKnownHostsFile=/etc/mediaserver/known_hosts \
+    -i ${IDENTITY} \
+    -p ${VPS_PORT} \
+    -R 127.0.0.1:${REMOTE_PORT}:127.0.0.1:${LOCAL_PORT} \
+    ${VPS_USER}@${VPS_HOST}
+Restart=always
+RestartSec=10
+
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadOnlyPaths=/etc/mediaserver
+
+[Install]
+WantedBy=multi-user.target
